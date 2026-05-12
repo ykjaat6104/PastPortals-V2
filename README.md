@@ -44,7 +44,7 @@ PastPortals implements **Correction + Retrieval-Augmented Generation (CRAG)** to
 
 ## 🏗️ Technical Architecture
 
-### 🔧 System Components
+### 📊 System Components
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -80,13 +80,8 @@ PastPortals implements **Correction + Retrieval-Augmented Generation (CRAG)** to
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 📊 System Architecture Visualization
-
-![Component Hierarchy - System Architecture Layers](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/component_hierarchy.png)
-
-### 🛠️ Technology Stack
-
-![Technology Stack v2 - Multimodal CRAG System](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/tech_stack_architecture.png)
+<details >
+  <summary><h2> 🛠️ Technology Stack</h2></summary>
 
 #### **Frontend Architecture** 🎨
 | Component | Technology | Purpose |
@@ -152,7 +147,14 @@ PastPortals implements **Correction + Retrieval-Augmented Generation (CRAG)** to
 | **Model Adaptation** | Online learning mechanisms | Continuous improvement of retrieval quality |
 | **Performance Monitoring** | Metrics & analytics dashboard | Track system improvement across sessions |
 
+</details>
+
+
+<img width="4179" height="2979" alt="tech_stack_architecture" src="https://github.com/user-attachments/assets/687e198a-43d8-405b-9dc9-2148b8f1f95c" />
+
+
 ---
+
 ## 🎓 System Objectives
 
 The development of PastPortals targets the following key objectives:
@@ -184,6 +186,7 @@ The development of PastPortals targets the following key objectives:
 | Comprehensive Testing | 50+ backend + 40+ frontend unit tests |
 | Museum Integration | Curated museum data and virtual tour content |
 
+
 ### 📁 File Processing Specifications
 
 | Category | Maximum Size | Supported Formats |
@@ -197,9 +200,10 @@ The development of PastPortals targets the following key objectives:
 
 ## 🔄 Intelligent Self-Improving Feedback Loop System
 
-![Self-Improving Intelligence - The Feedback Loop](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/feedback_loop_system.png)
+<img width="4779" height="2979" alt="feedback_loop_system" src="https://github.com/user-attachments/assets/30fe3967-945c-424a-bc58-c09bfff7d0b4" />
 
-Every user interaction represents an opportunity for system learning. PastPortals v2 incorporates a sophisticated feedback pipeline that continuously refines retrieval accuracy, response relevance, and domain understanding.
+
+<strong> Every user interaction represents an opportunity for system learning. PastPortals v2 incorporates a sophisticated feedback pipeline that continuously refines retrieval accuracy, response relevance, and domain understanding.</strong>
 
 ### 🔀 Feedback Mechanism Architecture
 
@@ -337,11 +341,6 @@ Navigate to `http://localhost:3001/multimodal` to access the multimodal input in
 
 ---
 
-## 🌐 Production Deployment Architecture
-
-![Deployment Architecture - Multi-Tier Production Environment](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/deployment_architecture.png)
-
----
 
 ## ✅ Testing & Quality Assurance
 
@@ -426,55 +425,19 @@ Parameters:
 
 This repository includes comprehensive technical documentation:
 
-### 📘 MULTIMODAL_IMPLEMENTATION.md
-Detailed technical specifications including:
-- Component architecture and function signatures
-- Data extraction methodologies (PDF, DOCX, OCR, video processing)
-- Response generation and fallback mechanisms
-- Database schema and metadata structures
-- Test coverage matrices and known limitations
 
-**Intended Audience**: Developers, code maintainers, technical architects
 
-### 📛 MULTIMODAL_TESTING.md
-Comprehensive testing procedures including:
-- Unit test execution commands and validation checklists
-- End-to-end testing procedures for each input modality
-- Debugging trees organized by symptom/failure mode
-- Performance benchmarks and acceptance criteria
-- Continuous integration recommendations
-
-**Intended Audience**: QA engineers, DevOps professionals, deployment teams
 
 ---
 
 ## 🚀 Roadmap & Future Development
 
-### 👏 Version 2.0 (Current Release)
-✅ **CRAG (Correction + RAG)**: Fact-checking module for hallucination prevention  
-✅ **Voice-First Conversational AI**: Hands-free interaction with natural language understanding  
-✅ **Intelligent Feedback Loop**: Self-improving system that learns from user interactions  
-✅ **FastAPI Backend**: Async architecture for improved scalability and performance  
-✅ **Multimodal Processing**: Support for documents, images, videos, and voice input  
-
 ### 🌟 Version 2.1 (Planned - Q2 2026)
-- **Enhanced CRAG Validator**: Multi-stage fact verification with source attribution
-- **Feedback-Driven Ranking**: Advanced machine learning for personalized retrieval
-- **Asynchronous Job Processing**: Handle large document/video files without blocking
-- **Knowledge Graph Integration**: Semantic relationship mapping for cultural artifacts
-- **Performance Optimization**: Latency reduction to <500ms for voice interactions
-
-### 💊 Version 2.2 (Planned - Q3 2026)
-- **Expanded Voice Features**: Speaker identification and conversation context memory
-- **Multilingual Enhancement**: Full 18+ language support with cultural context preservation
-- **Mobile Voice Assistant**: Dedicated mobile app with voice-first experience
-- **Real-time Collaboration**: Multiple visitors discussing same artifact with shared feedback
-
-### 🚀 Version 2.3+ (Planned - Q4 2026+)
 - **3D Artifact Visualization**: Interactive 3D models of museum pieces with voice guidance
-- **Augmented Reality Integration**: AR overlays powered by voice commands
-- **Collaborative Annotation**: Visitor annotations that improve cultural understanding
-- **Institutional Dashboard**: Museum analytics tracking visitor learning and engagement
+- **Knowledge Graph Integration**: Semantic relationship mapping for cultural artifacts
+- **Asynchronous Job Processing**: Handle large document/video files without blocking
+- **Mobile Voice Assistant**: Dedicated mobile app with voice-first experience
+- **Performance Optimization**: Latency reduction to <500ms for voice interactions
 
 ---
 
@@ -490,7 +453,8 @@ Comprehensive testing procedures including:
 | Museum Partnerships | 6 institutions |
 | Development Duration | 3+ months |
 
-![Project Statistics & Metrics](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/project_statistics.png)
+<img width="4477" height="2956" alt="project_statistics" src="https://github.com/user-attachments/assets/eed41560-7696-4caf-a3b5-24d3470e94ec" />
+
 
 ---
 
@@ -515,17 +479,6 @@ Please submit issues via GitHub Issues with:
 - Error logs and stack traces
 - Screenshots or relevant attachments
 
-### 🔨 Development Workflow
-1. Create feature branch: `git checkout -b feature/feature-name`
-2. Implement changes and execute tests locally
-3. Commit with descriptive messages following conventional commits
-4. Push to remote and create pull request
-5. Submit for code review and CI/CD validation
-
-### 💬 Technical Support
-- Documentation: See [MULTIMODAL_IMPLEMENTATION.md](MULTIMODAL_IMPLEMENTATION.md) and [MULTIMODAL_TESTING.md](MULTIMODAL_TESTING.md)
-- GitHub Discussions: Community Q&A and feature discussion
-- Issue Tracker: Bug reports and feature requests
 
 ---
 
@@ -592,16 +545,7 @@ This project is distributed under the **MIT License** for educational and resear
 
 ## Authors
 
-**Project Team**:
-- Manu Awasthi (2204920100079)
-- Pushkar Raj Vats (2204920100116)
-- Satendra Kumar (2204920100141)
-- Sunny Raj (2204920100164)
-- Yash Kumar Kalirawan (2204920100183)
-
-**Faculty Advisor**: Dr. Balak Ram  
-**Institution**: KCC Institute of Technology and Management  
-**University**: Dr. A.P.J. Abdul Kalam Technical University, Lucknow
+- Yash Kumar Kalirawan
 
 ---
 
@@ -612,3 +556,14 @@ Artificial Intelligence · Museums · Conversational Agents · Retrieval-Augment
 ---
 
 **PastPortals v2** — Advancing Cultural Heritage Interpretation Through Intelligent Technology
+
+## 🤝 Contributing
+
+Contributions are welcome!
+1.  Fork the repository.
+2.  Create a feature branch.
+3.  Commit your changes.
+4.  Push to the branch.
+5.  Open a Pull Request.
+
+<p align="center">⭐ If you like my work, drop a ⭐ and let's connect!</p>
