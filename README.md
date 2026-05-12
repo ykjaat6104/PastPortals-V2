@@ -7,15 +7,15 @@
 [![FAISS](https://img.shields.io/badge/FAISS-Vector_Database-4285f4)](https://github.com/facebookresearch/faiss)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## Project Overview
+## 🏛️ Project Overview
 
 PastPortals is an intelligent, AI-powered museum guide system developed as a response to limitations in traditional and existing digital museum information systems. The platform integrates **Correction + Retrieval-Augmented Generation (CRAG)**, natural language processing, multimodal interaction, vector-based retrieval, voice-first conversational AI, and continuous self-improving feedback loops to deliver accurate, context-aware, and engaging cultural heritage experiences.
 
 ---
 
-## Problem Statement & Motivation
+## 🎯 Problem Statement & Motivation
 
-### Limitations of Existing Systems
+### ❌ Limitations of Existing Systems
 
 Traditional museum systems rely on static methods—printed labels, brochures, audio guides—that fail to:
 - Provide interactive or personalized visitor experiences
@@ -29,7 +29,7 @@ Conversely, LLM-based conversational systems suffer from:
 - **Limited multimodal support**: Restricted to single interaction modes
 - **Poor scalability**: Inefficient handling of simultaneous visitors
 
-### Proposed Solution
+### ✅ Proposed Solution
 
 PastPortals implements **Correction + Retrieval-Augmented Generation (CRAG)** to bridge this gap by:
 1. Retrieving verified information from curated knowledge bases
@@ -42,9 +42,9 @@ PastPortals implements **Correction + Retrieval-Augmented Generation (CRAG)** to
 
 ---
 
-## Technical Architecture
+## 🏗️ Technical Architecture
 
-### System Components
+### 🔧 System Components
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -80,11 +80,11 @@ PastPortals implements **Correction + Retrieval-Augmented Generation (CRAG)** to
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### System Architecture Visualization
+### 📊 System Architecture Visualization
 
 ![Component Hierarchy - System Architecture Layers](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/component_hierarchy.png)
 
-### Technology Stack
+### 🛠️ Technology Stack
 
 ![Technology Stack v2 - Multimodal CRAG System](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/tech_stack_architecture.png)
 
@@ -153,7 +153,7 @@ PastPortals implements **Correction + Retrieval-Augmented Generation (CRAG)** to
 | **Performance Monitoring** | Metrics & analytics dashboard | Track system improvement across sessions |
 
 ---
-## System Objectives
+## 🎓 System Objectives
 
 The development of PastPortals targets the following key objectives:
 
@@ -167,9 +167,9 @@ The development of PastPortals targets the following key objectives:
 
 ---
 
-## Core Features
+## ⭐ Core Features
 
-### Current Implementation (v2.0)
+### ✨ Current Implementation (v2.0)
 
 | Feature | Implementation |
 |---------|-----------------|
@@ -184,7 +184,7 @@ The development of PastPortals targets the following key objectives:
 | Comprehensive Testing | 50+ backend + 40+ frontend unit tests |
 | Museum Integration | Curated museum data and virtual tour content |
 
-### File Processing Specifications
+### 📁 File Processing Specifications
 
 | Category | Maximum Size | Supported Formats |
 |----------|--------------|-------------------|
@@ -195,13 +195,13 @@ The development of PastPortals targets the following key objectives:
 
 ---
 
-## Intelligent Self-Improving Feedback Loop System
+## 🔄 Intelligent Self-Improving Feedback Loop System
 
 ![Self-Improving Intelligence - The Feedback Loop](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/feedback_loop_system.png)
 
 Every user interaction represents an opportunity for system learning. PastPortals v2 incorporates a sophisticated feedback pipeline that continuously refines retrieval accuracy, response relevance, and domain understanding.
 
-### Feedback Mechanism Architecture
+### 🔀 Feedback Mechanism Architecture
 
 **Stage 1: User Feedback Captured**
 - Explicit ratings and implicit signals (re-queries, dwell time) logged per interaction
@@ -218,7 +218,7 @@ Every user interaction represents an opportunity for system learning. PastPortal
 - Adaptive behavior emerges from aggregated feedback signals
 - Cultural context understanding deepens through continuous learning
 
-### Key Benefits
+### 🎯 Key Benefits
 
 - **Adaptive Responses**: Museum guides learn visitor preferences and knowledge levels
 - **Domain Refinement**: Historical accuracy improves through expert feedback integration
@@ -227,13 +227,13 @@ Every user interaction represents an opportunity for system learning. PastPortal
 
 ---
 
-## Voice-First Conversational AI Bot
+## 🎤 Voice-First Conversational AI Bot
 
 ![Voice-First Conversational AI](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/voice_ai_architecture.png)
 
 PastPortals v2 delivers a seamless, hands-free cultural exploration experience through intelligent voice-first conversational AI.
 
-### Core Voice Features
+### 🗣️ Core Voice Features
 
 | Feature | Technology | Implementation |
 |---------|-----------|-----------------|
@@ -244,7 +244,7 @@ PastPortals v2 delivers a seamless, hands-free cultural exploration experience t
 | **Context-Aware Dialogue** | Domain-aware conversation state | Adapts responses based on museum location and artifact |
 | **Multilingual Support** | 18+ language voice processing | Bilingual interactions for international visitors |
 
-### Use Case: Bilingual Voice Interaction
+### 🌐 Use Case: Bilingual Voice Interaction
 
 A visitor asks in English about an ancient artifact. The system:
 1. Captures voice query in real-time
@@ -253,7 +253,7 @@ A visitor asks in English about an ancient artifact. The system:
 4. Delivers response in visitor's native language via text-to-speech
 5. Captures feedback for future refinement
 
-### Technical Stack for Voice AI
+### 🔬 Technical Stack for Voice AI
 
 - **Voice Input**: Web Speech API + Whisper transcription
 - **Voice Processing**: TensorFlow Lite for on-device optimization
@@ -263,13 +263,13 @@ A visitor asks in English about an ancient artifact. The system:
 
 ---
 
-## Data Flow: Multimodal Intelligent Pipeline
+## 🌊 Data Flow: Multimodal Intelligent Pipeline
 
 ![Data Flow - Multimodal Intelligent Pipeline](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/data_flow_pipeline.png)
 
 PastPortals v2 represents a complete data journey, from diverse user inputs to intelligent, verified outputs, constantly refining itself through feedback.
 
-### Processing Pipeline
+### ⚡ Processing Pipeline
 
 1. **User Input Acquisition** → Text, Voice, Image, or Video submission
 2. **Multimodal Processing** → Speech-to-Text, OCR, Frame Extraction, Document Parsing
@@ -283,14 +283,14 @@ PastPortals v2 represents a complete data journey, from diverse user inputs to i
 
 ---
 
-### System Requirements
+### 📋 System Requirements
 
 - **Node.js**: v16 or higher
 - **Python**: v3.10 or higher
 - **Tesseract OCR**: System-level installation required
 - **Virtual Environment**: Python venv or equivalent
 
-### Development Setup
+### 💻 Development Setup
 
 ```powershell
 # Activate virtual environment
@@ -313,7 +313,7 @@ npm install
 # REACT_APP_API_URL=http://localhost:5000
 ```
 
-### Running the Application
+### 🚀 Running the Application
 
 **Terminal 1 - Backend Server:**
 ```powershell
@@ -337,15 +337,15 @@ Navigate to `http://localhost:3001/multimodal` to access the multimodal input in
 
 ---
 
-## Production Deployment Architecture
+## 🌐 Production Deployment Architecture
 
 ![Deployment Architecture - Multi-Tier Production Environment](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/deployment_architecture.png)
 
 ---
 
-## Testing & Quality Assurance
+## ✅ Testing & Quality Assurance
 
-### Backend Testing
+### 👾 Backend Testing
 
 ```powershell
 # Execute all backend tests
@@ -364,7 +364,7 @@ pytest backend/tests/test_multimodal_routes.py -v
 - `test_multimodal_routes.py`: 15+ tests (API endpoint validation, error handling)
 - **Aggregate Coverage**: 90%+ of core functionality
 
-### Frontend Testing
+### 📋 Frontend Testing
 
 ```bash
 cd frontend
@@ -379,9 +379,9 @@ npm test MultimodalPanel    # Test specific component
 
 ---
 
-## API Specification
+## 🔐 API Specification
 
-### Primary Endpoint: Multimodal Analysis
+### 🔓 Primary Endpoint: Multimodal Analysis
 
 **Endpoint**: `POST /api/multimodal/analyze`
 
@@ -422,11 +422,11 @@ Parameters:
 
 ---
 
-## Documentation
+## 📖 Documentation
 
 This repository includes comprehensive technical documentation:
 
-### MULTIMODAL_IMPLEMENTATION.md
+### 📘 MULTIMODAL_IMPLEMENTATION.md
 Detailed technical specifications including:
 - Component architecture and function signatures
 - Data extraction methodologies (PDF, DOCX, OCR, video processing)
@@ -436,7 +436,7 @@ Detailed technical specifications including:
 
 **Intended Audience**: Developers, code maintainers, technical architects
 
-### MULTIMODAL_TESTING.md
+### 📛 MULTIMODAL_TESTING.md
 Comprehensive testing procedures including:
 - Unit test execution commands and validation checklists
 - End-to-end testing procedures for each input modality
@@ -448,29 +448,29 @@ Comprehensive testing procedures including:
 
 ---
 
-## Roadmap & Future Development
+## 🚀 Roadmap & Future Development
 
-### Version 2.0 (Current Release)
+### 👏 Version 2.0 (Current Release)
 ✅ **CRAG (Correction + RAG)**: Fact-checking module for hallucination prevention  
 ✅ **Voice-First Conversational AI**: Hands-free interaction with natural language understanding  
 ✅ **Intelligent Feedback Loop**: Self-improving system that learns from user interactions  
 ✅ **FastAPI Backend**: Async architecture for improved scalability and performance  
 ✅ **Multimodal Processing**: Support for documents, images, videos, and voice input  
 
-### Version 2.1 (Planned - Q2 2026)
+### 🌟 Version 2.1 (Planned - Q2 2026)
 - **Enhanced CRAG Validator**: Multi-stage fact verification with source attribution
 - **Feedback-Driven Ranking**: Advanced machine learning for personalized retrieval
 - **Asynchronous Job Processing**: Handle large document/video files without blocking
 - **Knowledge Graph Integration**: Semantic relationship mapping for cultural artifacts
 - **Performance Optimization**: Latency reduction to <500ms for voice interactions
 
-### Version 2.2 (Planned - Q3 2026)
+### 💊 Version 2.2 (Planned - Q3 2026)
 - **Expanded Voice Features**: Speaker identification and conversation context memory
 - **Multilingual Enhancement**: Full 18+ language support with cultural context preservation
 - **Mobile Voice Assistant**: Dedicated mobile app with voice-first experience
 - **Real-time Collaboration**: Multiple visitors discussing same artifact with shared feedback
 
-### Version 2.3+ (Planned - Q4 2026+)
+### 🚀 Version 2.3+ (Planned - Q4 2026+)
 - **3D Artifact Visualization**: Interactive 3D models of museum pieces with voice guidance
 - **Augmented Reality Integration**: AR overlays powered by voice commands
 - **Collaborative Annotation**: Visitor annotations that improve cultural understanding
@@ -478,7 +478,7 @@ Comprehensive testing procedures including:
 
 ---
 
-## Project Statistics
+## 📊 Project Statistics
 
 | Metric | Value |
 |--------|-------|
@@ -494,7 +494,7 @@ Comprehensive testing procedures including:
 
 ---
 
-## Key References & Data Sources
+## 🔗 Key References & Data Sources
 
 - **Content**: Wikipedia Foundation (en.wikipedia.org)
 - **Historical Images**: Wikimedia Commons
@@ -506,23 +506,23 @@ Comprehensive testing procedures including:
 
 ---
 
-## Contributing & Support
+## 🤛 Contributing & Support
 
-### Reporting Issues
+### 📋 Reporting Issues
 Please submit issues via GitHub Issues with:
 - Detailed description and reproduction steps
 - Environment specifications (OS, Python version, Node version)
 - Error logs and stack traces
 - Screenshots or relevant attachments
 
-### Development Workflow
+### 🔨 Development Workflow
 1. Create feature branch: `git checkout -b feature/feature-name`
 2. Implement changes and execute tests locally
 3. Commit with descriptive messages following conventional commits
 4. Push to remote and create pull request
 5. Submit for code review and CI/CD validation
 
-### Technical Support
+### 💬 Technical Support
 - Documentation: See [MULTIMODAL_IMPLEMENTATION.md](MULTIMODAL_IMPLEMENTATION.md) and [MULTIMODAL_TESTING.md](MULTIMODAL_TESTING.md)
 - GitHub Discussions: Community Q&A and feature discussion
 - Issue Tracker: Bug reports and feature requests
