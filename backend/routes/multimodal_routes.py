@@ -16,6 +16,9 @@ from utils.multimodal_utils import (
     generate_multimodal_fallback_response,
     generate_multimodal_prompt,
 )
+from utils.crag_utils import apply_crag
+from utils.vector_utils import load_vector_db
+from config import get_config
 
 
 multimodal_bp = Blueprint('multimodal', __name__, url_prefix='/api/multimodal')
@@ -59,6 +62,10 @@ def _build_related_topics(search_term: str) -> list[dict]:
 
 @multimodal_bp.route('/analyze', methods=['POST'])
 def analyze_multimodal_input():
+    """
+    Analyze multimodal input using CRAG (Correction + RAG) pipeline
+    for accurate, fact-checked responses
+    """
     question, input_mode = _extract_question_payload()
     uploaded_file = request.files.get('file') or request.files.get('upload')
 
@@ -77,6 +84,7 @@ def analyze_multimodal_input():
     extraction_notes: list[str] = []
     extraction_method = 'text-only'
 
+    # Step 1: Extract content from uploaded file
     if uploaded_file and uploaded_file.filename:
         saved_path = _save_upload(uploaded_file)
         file_details['filename'] = uploaded_file.filename
@@ -103,25 +111,49 @@ def analyze_multimodal_input():
 
     related_topics = _build_related_topics(question or extracted_text[:120])
 
+    # Step 2: Apply CRAG pipeline for fact-checked responses
     if is_gemini_configured():
         try:
-            prompt = generate_multimodal_prompt(question or 'Analyze the uploaded material', input_mode, extracted_text, file_details, extraction_notes)
-            answer_text = generate_content(prompt, temperature=0.6, max_tokens=2048) or ''
-
-            if answer_text.strip():
-                return jsonify({
-                    'success': True,
-                    'mode': input_mode,
-                    'method': extraction_method,
-                    'metadata': file_details,
-                    'extracted_text': extracted_text,
-                    'notes': extraction_notes,
-                    'response': answer_text,
-                    'related_topics': related_topics,
-                })
-        except Exception:
+            # Load vector database for retrieval
+            config = get_config()
+            index_path = f"{config.DATA_DIR}/faiss_index.bin"
+            text_map_path = f"{config.DATA_DIR}/faiss_text_map.json"
+            index, text_map = load_vector_db(index_path, text_map_path)
+            
+            # Execute CRAG pipeline
+            crag_results = apply_crag(
+                query=question or 'Analyze the uploaded material',
+                index=index,
+                text_map=text_map,
+                extracted_text=extracted_text
+            )
+            
+            # Build response with CRAG information
+            return jsonify({
+                'success': True,
+                'mode': input_mode,
+                'method': extraction_method,
+                'metadata': file_details,
+                'extracted_text': extracted_text,
+                'notes': extraction_notes,
+                'response': crag_results.get('final_response', ''),
+                'related_topics': related_topics,
+                # CRAG pipeline details
+                'crag': {
+                    'applied': crag_results.get('crag_applied', False),
+                    'validation_passed': crag_results.get('validation_passed', True),
+                    'confidence_score': crag_results.get('stage_3_validation', {}).get('confidence_score', 0),
+                    'validation_issues': crag_results.get('stage_3_validation', {}).get('issues', []),
+                    'stages_completed': 4
+                }
+            })
+            
+        except Exception as e:
+            print(f"CRAG pipeline error: {str(e)}")
+            # Fall back to basic generation if CRAG fails
             pass
 
+    # Step 3: Fallback to non-CRAG response
     fallback = generate_multimodal_fallback_response(
         question=question or 'Uploaded material analysis',
         input_mode=input_mode,
@@ -141,4 +173,11 @@ def analyze_multimodal_input():
         'response': fallback,
         'related_topics': related_topics,
         'fallback': True,
+        'crag': {
+            'applied': False,
+            'validation_passed': False,
+            'confidence_score': 0,
+            'validation_issues': ['CRAG pipeline unavailable, using fallback response'],
+            'stages_completed': 0
+        }
     })

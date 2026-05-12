@@ -10,6 +10,7 @@ Import specific functions from submodules as needed.
 
 __all__ = [
     'ai_utils',
+    'crag_utils',
     'vector_utils',
     'wikipedia_utils',
     'museum_utils',
