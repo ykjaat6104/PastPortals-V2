@@ -11,10 +11,6 @@
 
 PastPortals is an intelligent, AI-powered museum guide system developed as a response to limitations in traditional and existing digital museum information systems. The platform integrates **Correction + Retrieval-Augmented Generation (CRAG)**, natural language processing, multimodal interaction, vector-based retrieval, voice-first conversational AI, and continuous self-improving feedback loops to deliver accurate, context-aware, and engaging cultural heritage experiences.
 
-### Executive Summary
-
-This project addresses critical challenges in museum information delivery by combining advanced technologies—Large Language Models (LLMs), FAISS vector search, speech processing, voice conversation APIs, and multimodal interfaces—within a **Correction + Retrieval-Augmented Generation (CRAG)** framework enhanced by an intelligent feedback loop system. The architecture eliminates hallucination risks inherent to pure LLM-based approaches by grounding all responses in curated, verified knowledge bases and continuously refining understanding through user interactions.
-
 ---
 
 ## Problem Statement & Motivation
@@ -43,20 +39,6 @@ PastPortals implements **Correction + Retrieval-Augmented Generation (CRAG)** to
 5. Implementing intelligent feedback loops that refine system behavior with each user interaction
 6. Enabling multilingual communication across 18+ languages
 7. Ensuring scalability and continuous improvement for high-traffic museum environments
-
----
-
-## System Objectives
-
-The development of PastPortals targets the following key objectives:
-
-1. **Accuracy & Reliability**: Ground all responses in trusted, curated datasets with fact-checking mechanisms to reduce hallucination and enhance credibility
-2. **Voice-First Interaction**: Enable seamless voice-based conversational interfaces for hands-free cultural exploration with natural language understanding
-3. **Continuous Self-Improvement**: Implement intelligent feedback loops that refine retrieval ranking, response quality, and domain understanding from every user interaction
-4. **Multilingual Support**: Provide accessibility across 18+ languages for diverse visitor populations with cultural context preservation
-5. **Multimodal Delivery**: Process and respond to diverse input modalities (text, voice, image, video) while delivering content in preferred formats
-6. **Scalability & Performance**: Handle multiple concurrent users without degradation using FastAPI async architecture
-7. **Accessibility & Cultural Sensitivity**: Maintain authenticity in heritage interpretation while supporting diverse learning styles and accessibility requirements
 
 ---
 
@@ -98,9 +80,13 @@ The development of PastPortals targets the following key objectives:
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+### System Architecture Visualization
+
+![Component Hierarchy - System Architecture Layers](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/component_hierarchy.png)
+
 ### Technology Stack
 
-![Technology Stack v2 - Multimodal CRAG System](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/tech-stack.png)
+![Technology Stack v2 - Multimodal CRAG System](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/tech_stack_architecture.png)
 
 #### **Frontend Architecture** 🎨
 | Component | Technology | Purpose |
@@ -167,6 +153,19 @@ The development of PastPortals targets the following key objectives:
 | **Performance Monitoring** | Metrics & analytics dashboard | Track system improvement across sessions |
 
 ---
+## System Objectives
+
+The development of PastPortals targets the following key objectives:
+
+1. **Accuracy & Reliability**: Ground all responses in trusted, curated datasets with fact-checking mechanisms to reduce hallucination and enhance credibility
+2. **Voice-First Interaction**: Enable seamless voice-based conversational interfaces for hands-free cultural exploration with natural language understanding
+3. **Continuous Self-Improvement**: Implement intelligent feedback loops that refine retrieval ranking, response quality, and domain understanding from every user interaction
+4. **Multilingual Support**: Provide accessibility across 18+ languages for diverse visitor populations with cultural context preservation
+5. **Multimodal Delivery**: Process and respond to diverse input modalities (text, voice, image, video) while delivering content in preferred formats
+6. **Scalability & Performance**: Handle multiple concurrent users without degradation using FastAPI async architecture
+7. **Accessibility & Cultural Sensitivity**: Maintain authenticity in heritage interpretation while supporting diverse learning styles and accessibility requirements
+
+---
 
 ## Core Features
 
@@ -198,7 +197,7 @@ The development of PastPortals targets the following key objectives:
 
 ## Intelligent Self-Improving Feedback Loop System
 
-![Self-Improving Intelligence - The Feedback Loop](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/feedback-loop.png)
+![Self-Improving Intelligence - The Feedback Loop](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/feedback_loop_system.png)
 
 Every user interaction represents an opportunity for system learning. PastPortals v2 incorporates a sophisticated feedback pipeline that continuously refines retrieval accuracy, response relevance, and domain understanding.
 
@@ -230,7 +229,7 @@ Every user interaction represents an opportunity for system learning. PastPortal
 
 ## Voice-First Conversational AI Bot
 
-![Voice-First Conversational AI](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/voice-ai.png)
+![Voice-First Conversational AI](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/voice_ai_architecture.png)
 
 PastPortals v2 delivers a seamless, hands-free cultural exploration experience through intelligent voice-first conversational AI.
 
@@ -266,7 +265,7 @@ A visitor asks in English about an ancient artifact. The system:
 
 ## Data Flow: Multimodal Intelligent Pipeline
 
-![Data Flow - Multimodal Intelligent Pipeline](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/data-flow.png)
+![Data Flow - Multimodal Intelligent Pipeline](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/data_flow_pipeline.png)
 
 PastPortals v2 represents a complete data journey, from diverse user inputs to intelligent, verified outputs, constantly refining itself through feedback.
 
@@ -335,6 +334,12 @@ npm start
 ```
 
 Navigate to `http://localhost:3001/multimodal` to access the multimodal input interface.
+
+---
+
+## Production Deployment Architecture
+
+![Deployment Architecture - Multi-Tier Production Environment](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/deployment_architecture.png)
 
 ---
 
@@ -484,6 +489,8 @@ Comprehensive testing procedures including:
 | Supported Languages | 18+ (planned) |
 | Museum Partnerships | 6 institutions |
 | Development Duration | 3+ months |
+
+![Project Statistics & Metrics](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/project_statistics.png)
 
 ---
 
