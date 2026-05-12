@@ -425,19 +425,44 @@ Parameters:
 
 This repository includes comprehensive technical documentation:
 
+### 📘 CRAG_ARCHITECTURE_AND_PIPELINE_FLOW.md
+Detailed technical documentation covering:
+- CRAG architecture and the 4-stage retrieval, generation, validation, and correction flow
+- Multimodal integration points and response structure
+- Validation metrics, configuration defaults, and troubleshooting guidance
+- Practical testing notes, including the existing multimodal test files and recommended CRAG cases
 
-
+**Intended Audience**: Developers, code maintainers, technical architects, and QA engineers
 
 ---
 
 ## 🚀 Roadmap & Future Development
 
+### 👏 Version 2.0 (Current Release)
+✅ **CRAG (Correction + RAG)**: Fact-checking module for hallucination prevention  
+✅ **Voice-First Conversational AI**: Hands-free interaction with natural language understanding  
+✅ **Intelligent Feedback Loop**: Self-improving system that learns from user interactions  
+✅ **FastAPI Backend**: Async architecture for improved scalability and performance  
+✅ **Multimodal Processing**: Support for documents, images, videos, and voice input  
+
 ### 🌟 Version 2.1 (Planned - Q2 2026)
-- **3D Artifact Visualization**: Interactive 3D models of museum pieces with voice guidance
-- **Knowledge Graph Integration**: Semantic relationship mapping for cultural artifacts
+- **Enhanced CRAG Validator**: Multi-stage fact verification with source attribution
+- **Feedback-Driven Ranking**: Advanced machine learning for personalized retrieval
 - **Asynchronous Job Processing**: Handle large document/video files without blocking
-- **Mobile Voice Assistant**: Dedicated mobile app with voice-first experience
+- **Knowledge Graph Integration**: Semantic relationship mapping for cultural artifacts
 - **Performance Optimization**: Latency reduction to <500ms for voice interactions
+
+### 💊 Version 2.2 (Planned - Q3 2026)
+- **Expanded Voice Features**: Speaker identification and conversation context memory
+- **Multilingual Enhancement**: Full 18+ language support with cultural context preservation
+- **Mobile Voice Assistant**: Dedicated mobile app with voice-first experience
+- **Real-time Collaboration**: Multiple visitors discussing same artifact with shared feedback
+
+### 🚀 Version 2.3+ (Planned - Q4 2026+)
+- **3D Artifact Visualization**: Interactive 3D models of museum pieces with voice guidance
+- **Augmented Reality Integration**: AR overlays powered by voice commands
+- **Collaborative Annotation**: Visitor annotations that improve cultural understanding
+- **Institutional Dashboard**: Museum analytics tracking visitor learning and engagement
 
 ---
 
@@ -479,6 +504,17 @@ Please submit issues via GitHub Issues with:
 - Error logs and stack traces
 - Screenshots or relevant attachments
 
+### 🔨 Development Workflow
+1. Create feature branch: `git checkout -b feature/feature-name`
+2. Implement changes and execute tests locally
+3. Commit with descriptive messages following conventional commits
+4. Push to remote and create pull request
+5. Submit for code review and CI/CD validation
+
+### 💬 Technical Support
+- Documentation: See [CRAG_ARCHITECTURE_AND_PIPELINE_FLOW.md](CRAG_ARCHITECTURE_AND_PIPELINE_FLOW.md)
+- GitHub Discussions: Community Q&A and feature discussion
+- Issue Tracker: Bug reports and feature requests
 
 ---
 
