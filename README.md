@@ -5,207 +5,124 @@
 
 <img width="1920" height="1080" alt="Screenshot (71)" src="https://github.com/user-attachments/assets/69c94a9e-a70c-4bef-bc8a-b66dbd33cb70" />
 
+# 🌍 PastPortals v2 — Multimodal CRAG Museum Guide
 
-## ✨ Key Features
+PastPortals v2 is a research-focused, multimodal cultural exploration platform that combines document analysis, OCR, video processing, conversational AI, and curated museum content. This repository contains the working v2 codebase (frontend + backend), detailed implementation notes, and testing guides.
 
-### 🚀 **Multimodal Content Analysis (NEW in v2)**
-- **Document Upload**: Extract and analyze PDF, DOCX, TXT, MD, CSV, JSON, HTML files
-- **Image Recognition**: OCR-powered analysis of historical photographs and documents
-- **Video Processing**: Automatic frame sampling and text extraction from video content
-- **Voice Input**: Record and transcribe voice queries for hands-free interaction
-- **File Validation**: Real-time validation with size limits (50MB docs, 25MB images, 500MB videos)
-- **Upload Progress**: Visual progress bar with percentage tracking
-- **Content Preview**: Image thumbnails, video player, and file metadata display
+![hero screenshot](https://github.com/user-attachments/assets/69c94a9e-a70c-4bef-bc8a-b66dbd33cb70)
 
-### 🤖 **AI-Powered Historical Analysis**
-- Intelligent analysis of documents, images, and video content
-- Powered by Google Gemini 2.5 Flash for accurate, comprehensive responses
-- Context-aware answers with minimum 500+ word detailed explanations
-- Automatic fallback to enriched Wikipedia responses when API quotas reached
-- Metadata extraction (file info, processing method, extracted text, related topics)
+Overview
+--------
+PastPortals v2 focuses on practical multimodal workflows for history and museum content. Users can ask questions, upload documents/images/videos, or speak their queries; the system extracts content, retrieves relevant domain knowledge, and returns an explainable, sourced response. When the primary AI is unavailable, the system falls back to an enriched Wikipedia-based answer.
 
-### 🖼️ **Real Historical Images**
-- Automatic image sourcing from Wikimedia Commons
-- Wikipedia-style text wrapping layout with authentic historical photographs
-- 3-4 curated images per topic with source attribution
-- Professional grid layout optimized for reading
+What’s included (current)
+-------------------------
+- Unified multimodal input panel (Document, Image, Video, Voice)
+- Backend multimodal extraction utilities (`backend/utils/multimodal_utils.py`)
+- `/api/multimodal/analyze` endpoint for multipart analysis
+- Image OCR (Tesseract), PDF/DOCX extraction (PyMuPDF, python-docx)
+- Video frame sampling and OCR (OpenCV + pytesseract)
+- Client-side file validation and upload progress (React)
+- Comprehensive unit tests for backend and frontend (see `backend/tests/`, `frontend/src/components/*.test.jsx`)
+- Documentation: `MULTIMODAL_IMPLEMENTATION.md`, `MULTIMODAL_TESTING.md`
 
-### 🌐 **Multi-Language Translation**
-- Real-time translation to 18+ languages
-- Support for: English, Hindi, French, Spanish, Portuguese, Arabic, Chinese, Japanese, German, Italian, Russian, Korean, and more
-- Seamless language switching without page reload
+Why the separate implementation & testing docs?
+----------------------------------------------
+`MULTIMODAL_IMPLEMENTATION.md` and `MULTIMODAL_TESTING.md` are intentionally standalone because they contain long-form, technical details, test procedures, and checklists that would overwhelm the main README. The README links to them and provides a concise summary and quick-start instructions.
 
-### 🎤 **Voice Search Integration**
-- Hands-free search using Web Speech API
-- Visual feedback with color-coded status (Red: listening, Blue: ready)
-- Works in Chrome, Edge, and Brave browsers
-- Green search button for manual queries
-- Voice recording for multimodal video input
+Roadmap — planned v2 upgrades (what we'll implement next)
+-------------------------------------------------------
+- Migrate backend from **Flask → FastAPI** for async performance and easier deployment
+- Replace basic RAG with **CRAG (Correction + RAG)** — a retrieval pipeline that includes CRAG validation and feedback-corrected ranking
+- Implement an **intelligent feedback loop**: capture user signals (ratings, dwell time, re-queries) to refine vector re-ranking and retrieval weights
+- Add a **voice-first conversational assistant**: low-latency speech-to-text, voice-controlled actions, and TTS responses for hands-free museum tours
+- Improve vector store to use FAISS with domain-specific indexes and feedback-driven ranking updates
+- Provide optional Docker + Kubernetes manifests for production deployment
 
-### 🏛️ **Interactive Museum Explorer**
-- Virtual tours of world-famous museums
-- Featured institutions: Louvre, British Museum, National Museum India, Egyptian Museum, Smithsonian, Palace Museum
-- Direct links to official museum websites
-- Detailed highlights and establishment history
+Key design goals
+----------------
+- Explainable outputs with metadata (source citations, processing method, extracted text)
+- Resilient responses (GRACEFUL fallback to enriched Wikipedia content)
+- Privacy-first uploads (temporary storage and automatic cleanup)
+- Incremental learning via feedback signals (no personal data retention)
 
-### 📜 **Historical Timeline Navigation**
-- Explore major historical periods and events
-- Interactive timeline with categorized eras
-- Quick-access topic tags for popular searches
+Tech stack — current vs planned
+--------------------------------
+- Frontend: React 18, React Router, Framer Motion, Lucide icons, Jest + React Testing Library
+- Backend (current): Flask, Python, PyMuPDF, python-docx, pytesseract, OpenCV, FAISS
+- Backend (planned): **FastAPI**, async ingestion, uvicorn/gunicorn for production
+- AI layer: Google Gemini (primary) with Wikipedia-enriched fallback. Planned: improved CRAG pipeline and optional open-source LLM adapters
 
-### 🔍 **Smart Search System**
-- Wikipedia-powered search with AI enhancement
-- Auto-search from topic tags and suggestions
-- Search available on all pages including multimodal explorer
-- Instant results with comprehensive explanations
+Quick start (development)
+-------------------------
+Prereqs: Node.js, Python 3.10+, Tesseract OCR installed on system
 
-### 📊 **Professional UI/UX**
-- Clean, modern design with light theme
-- Elegant sidebar navigation
-- Responsive layout for mobile, tablet, and desktop
-- Smooth animations and hover effects
-- Professional typography and spacing
+```powershell
+# Activate venv
+& .venv\\Scripts\\Activate.ps1
 
-<img width="1920" height="1080" alt="Screenshot (72)" src="https://github.com/user-attachments/assets/92c0d878-a898-4ed6-a4a0-7c4b77fecc38" />
-
-
-<img width="1920" height="1080" alt="Screenshot (73)" src="https://github.com/user-attachments/assets/03514f7f-3242-40a6-9021-93511e2b9467" />
-
-
-## 🎯 Use Cases
-
-- **Students & Educators**: Research historical topics with verified sources
-- **History Enthusiasts**: Deep dive into civilizations, wars, and cultural movements
-- **Museum Visitors**: Pre-visit research and virtual museum exploration
-- **Language Learners**: Study history in multiple languages
-- **Content Creators**: Gather accurate historical information with citations
-
----
-
-## 🏗️ Technical Architecture
-
-### **Frontend Stack**
-- **Framework**: React 18.2.0
-- **Routing**: React Router DOM 6.20.1
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
-- **Styling**: Custom CSS with CSS Variables
-- **API Integration**: Fetch API with async/await
-- **Testing**: Jest & React Testing Library
-
-### **Backend Stack**
-- **Framework**: Flask (Python 3.13)
-- **AI Model**: Google Gemini 2.5 Flash
-- **Content Extraction**: PyMuPDF, python-docx, pdfplumber, Tesseract OCR
-- **Video Processing**: OpenCV (cv2)
-- **APIs**: Wikipedia API, Wikimedia Commons API
-- **CORS**: Flask-CORS for cross-origin requests
-- **Vector Database**: FAISS
-- **Testing**: pytest with 50+ test cases 
-
-### **Project Structure**
-```
-PastPortals-v2/
-├── frontend/                    # React Application
-│   ├── public/
-│   │   └── index.html          # HTML template
-│   ├── src/
-│   │   ├── components/         # React Components
-│   │   │   ├── Home.jsx        # Landing page
-│   │   │   ├── SearchPageNew.jsx      # Main search interface
-│   │   │   ├── TimelinePageNew.jsx    # Timeline explorer
-│   │   │   ├── MuseumsPageNew.jsx     # Museum directory
-│   │   │   ├── MultimodalPanel.jsx    # Unified multimodal input (NEW)
-│   │   │   ├── MultimodalPanel.test.jsx # Component tests (NEW)
-│   │   │   ├── VoiceSearchBar.jsx     # Voice search component
-│   │   │   ├── Header.jsx      # Navigation header
-│   │   │   └── Sidebar.jsx     # Navigation sidebar
-│   │   ├── contexts/           # React Context
-│   │   │   ├── APIContext.jsx  # API state management
-│   │   │   └── NotificationContext.jsx
-│   │   ├── styles/             # CSS Styling
-│   │   │   ├── globals.css     # Global styles
-│   │   │   ├── components.css  # Component & multimodal styles
-│   │   │   └── sidebar.css     # Sidebar styles
-│   │   ├── utils/              # Utilities
-│   │   │   ├── api.js          # API functions
-│   │   │   └── imageSearch.js  # Wikimedia image fetcher
-│   │   ├── App.jsx             # Main app component
-│   │   └── index.js            # Entry point
-│   ├── .env                    # Frontend config (PORT=3001)
-│   └── package.json            # Dependencies
-│
-├── backend/                    # Flask API Server
-│   ├── app.py                  # Main Flask app
-│   ├── config.py               # Configuration
-│   ├── routes/                 # API Routes
-│   │   ├── qa_routes.py        # Q&A endpoints
-│   │   ├── multimodal_routes.py # Multimodal analysis (NEW)
-│   │   ├── translate_routes.py # Translation
-│   │   ├── summarize_routes.py # Summarization
-│   │   ├── museum_routes.py    # Museum data
-│   │   └── config_routes.py    # Config endpoints
-│   ├── utils/                  # Backend utilities
-│   │   ├── ai_utils.py         # Gemini AI integration
-│   │   ├── multimodal_utils.py # File extraction & analysis (NEW)
-│   │   ├── wikipedia_utils.py  # Wikipedia API
-│   │   ├── museum_utils.py     # Museum data
-│   │   ├── vector_utils.py     # Vector operations
-│   │   └── history_utils.py    # History utilities
-│   ├── tests/                  # Test Suite (NEW)
-│   │   ├── test_multimodal_utils.py   # Backend utility tests
-│   │   └── test_multimodal_routes.py  # API endpoint tests
-│   ├── requirements.txt        # Python dependencies
-│   └── venv/                   # Virtual environment
-│
-├── .env                        # Environment variables (API keys)
-├── MULTIMODAL_IMPLEMENTATION.md # v2 feature documentation (NEW)
-├── MULTIMODAL_TESTING.md       # Testing guide & procedures (NEW)
-├── SETUP.md                    # Installation guide
-├── ARCHITECTURE.md             # Architecture documentation
-├── README.md                   # This file
-└── package.json                # Root dependencies
-```
-
----
-
-## 🚀 Quick Start Guide
-
-### **Prerequisites**
-
-Before running PastPortals v2, ensure you have:
-
-1. **Node.js** (v16 or higher)
-   - Download: https://nodejs.org
-   - Verify: `node --version`
-
-2. **Python** (v3.10 or higher)
-   - Download: https://python.org
-   - Verify: `python --version`
-
-3. **Google Gemini API Key**
-   - Get free key: https://aistudio.google.com/app/apikey
-   - Required for AI features
-
-4. **Tesseract OCR** (for image/video text extraction)
-   - Windows: Download installer from https://github.com/UB-Mannheim/tesseract/wiki
-   - Linux: `sudo apt-get install tesseract-ocr`
-   - macOS: `brew install tesseract`
-
-### **Installation Steps**
-
-#### **Quick Setup**
-
-```bash
-# 1. Navigate to project
-cd "C:\Users\DELL\Desktop\Code\Projects\PastPortals-v2"
-
-# 2. Install backend dependencies
+# Backend dependencies
 pip install -r backend/requirements.txt
 
-# 3. Install frontend dependencies
+# Frontend
 cd frontend
 npm install
+npm start
+
+# Backend (dev)
+cd backend
+# if running the current flask-based app:
+python app.py
+# planned migration will add: uvicorn backend.app:app --reload --port 5000
+
+# Frontend defaults to http://localhost:3001
+# Backend defaults to http://localhost:5000
+```
+
+Environment
+-----------
+- Root `.env` contains `GEMINI_API_KEY` and `CORS_ORIGINS`.
+- `frontend/.env.example` includes `PORT=3001` and `REACT_APP_API_URL=http://localhost:5000`.
+
+API highlights
+--------------
+- `POST /api/multimodal/analyze` — multipart endpoint (file, mode, question)
+  - Returns: `success, mode, method, extracted_text, response, metadata, related_topics, fallback`
+
+Testing
+-------
+- Backend tests: `pytest backend/tests/` (50+ tests covering multimodal extraction and routes)
+- Frontend tests: `npm test` in `frontend/` (Jest + RTL)
+- See `MULTIMODAL_TESTING.md` for detailed E2E and validation checklists
+
+Notes on migration to FastAPI & CRAG
+----------------------------------
+- Migration to FastAPI will be staged: maintain current Flask endpoints while adding a FastAPI service behind a feature flag. Tests will validate parity.
+- CRAG adds a lightweight validation layer that runs after retrieval and before generation — it checks facts, corrects entity alignment, and signals when fallback to Wikipedia is preferable.
+
+Contributing & next steps
+-------------------------
+If you'd like, I can:
+1. Open a branch `chore/readme-v2` and commit this README update
+2. Create a migration plan and PR for `Flask → FastAPI`
+3. Add an initial CRAG validator module and unit tests
+4. Implement a prototype voice-first assistant (speech → text → action)
+
+If you want me to proceed, tell me which of the above I should do next and I will create the branch and PR.
+
+Links & docs
+------------
+- Implementation details: [MULTIMODAL_IMPLEMENTATION.md](MULTIMODAL_IMPLEMENTATION.md)
+- Testing guide: [MULTIMODAL_TESTING.md](MULTIMODAL_TESTING.md)
+
+Credits
+-------
+- Historical content: Wikipedia Foundation
+- Images: Wikimedia Commons
+- AI: Google Gemini
+
+----
+PastPortals v2 — evolving multimodal cultural intelligence
 
 # 4. Create .env file in root with:
 GEMINI_API_KEY=your_api_key_here
