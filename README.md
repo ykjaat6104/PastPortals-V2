@@ -1,19 +1,19 @@
-# PastPortals v2: AI-Powered Multimodal RAG-Based Approach for Cultural Heritage Interpretation
+# PastPortals v2: AI-Powered Multimodal CRAG System for Cultural Heritage Interpretation
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776ab?logo=python&logoColor=white)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-18.2+-61dafb?logo=react&logoColor=black)](https://react.dev/)
-[![Flask](https://img.shields.io/badge/Flask-Production-000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Production-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-2.5_Flash-4285f4)](https://ai.google.dev/)
 [![FAISS](https://img.shields.io/badge/FAISS-Vector_Database-4285f4)](https://github.com/facebookresearch/faiss)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## Project Overview
 
-PastPortals is an intelligent, AI-powered museum guide system developed as a response to limitations in traditional and existing digital museum information systems. The platform integrates Retrieval-Augmented Generation (RAG), natural language processing, multimodal interaction, and vector-based retrieval to deliver accurate, context-aware, and engaging cultural heritage experiences.
+PastPortals is an intelligent, AI-powered museum guide system developed as a response to limitations in traditional and existing digital museum information systems. The platform integrates **Correction + Retrieval-Augmented Generation (CRAG)**, natural language processing, multimodal interaction, vector-based retrieval, voice-first conversational AI, and continuous self-improving feedback loops to deliver accurate, context-aware, and engaging cultural heritage experiences.
 
 ### Executive Summary
 
-This project addresses critical challenges in museum information delivery by combining advanced technologies—Large Language Models (LLMs), FAISS vector search, speech processing, and multimodal interfaces—within a Retrieval-Augmented Generation framework. The system eliminates hallucination risks inherent to pure LLM-based approaches by grounding all responses in curated, verified knowledge bases.
+This project addresses critical challenges in museum information delivery by combining advanced technologies—Large Language Models (LLMs), FAISS vector search, speech processing, voice conversation APIs, and multimodal interfaces—within a **Correction + Retrieval-Augmented Generation (CRAG)** framework enhanced by an intelligent feedback loop system. The architecture eliminates hallucination risks inherent to pure LLM-based approaches by grounding all responses in curated, verified knowledge bases and continuously refining understanding through user interactions.
 
 ---
 
@@ -35,12 +35,14 @@ Conversely, LLM-based conversational systems suffer from:
 
 ### Proposed Solution
 
-PastPortals implements **Retrieval-Augmented Generation (RAG)** to bridge this gap by:
+PastPortals implements **Correction + Retrieval-Augmented Generation (CRAG)** to bridge this gap by:
 1. Retrieving verified information from curated knowledge bases
-2. Generating responses grounded in reliable sources
-3. Supporting multimodal interaction (text, voice, visual)
-4. Enabling multilingual communication
-5. Ensuring scalability for high-traffic museum environments
+2. Validating and correcting generated content through fact-checking mechanisms
+3. Supporting multimodal interaction (text, voice, image, video)
+4. Enabling voice-first conversational AI for hands-free cultural exploration
+5. Implementing intelligent feedback loops that refine system behavior with each user interaction
+6. Enabling multilingual communication across 18+ languages
+7. Ensuring scalability and continuous improvement for high-traffic museum environments
 
 ---
 
@@ -48,13 +50,13 @@ PastPortals implements **Retrieval-Augmented Generation (RAG)** to bridge this g
 
 The development of PastPortals targets the following key objectives:
 
-1. **Accuracy & Reliability**: Ground all responses in trusted, curated datasets to reduce hallucination and enhance credibility
-2. **Natural Interaction**: Enable conversational interfaces supporting both text and voice input
-3. **Multilingual Support**: Provide accessibility across 18+ languages for diverse visitor populations
-4. **Multimodal Delivery**: Combine text, audio, and visual outputs to cater to different learning preferences
-5. **Scalability**: Handle multiple concurrent users without performance degradation
-6. **Cultural Sensitivity**: Maintain authenticity and accuracy in heritage interpretation
-7. **Accessibility**: Support diverse learning styles and accessibility requirements
+1. **Accuracy & Reliability**: Ground all responses in trusted, curated datasets with fact-checking mechanisms to reduce hallucination and enhance credibility
+2. **Voice-First Interaction**: Enable seamless voice-based conversational interfaces for hands-free cultural exploration with natural language understanding
+3. **Continuous Self-Improvement**: Implement intelligent feedback loops that refine retrieval ranking, response quality, and domain understanding from every user interaction
+4. **Multilingual Support**: Provide accessibility across 18+ languages for diverse visitor populations with cultural context preservation
+5. **Multimodal Delivery**: Process and respond to diverse input modalities (text, voice, image, video) while delivering content in preferred formats
+6. **Scalability & Performance**: Handle multiple concurrent users without degradation using FastAPI async architecture
+7. **Accessibility & Cultural Sensitivity**: Maintain authenticity in heritage interpretation while supporting diverse learning styles and accessibility requirements
 
 ---
 
@@ -98,25 +100,71 @@ The development of PastPortals targets the following key objectives:
 
 ### Technology Stack
 
-#### Frontend
-- **React 18.2**: Component-based user interface framework
-- **React Router 6**: Client-side application routing
-- **Framer Motion**: Animation and transition effects
-- **Lucide React**: Comprehensive icon library
-- **Jest & React Testing Library**: Component unit testing
-- **Axios**: HTTP client for API communication
+![Technology Stack v2 - Multimodal CRAG System](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/tech-stack.png)
 
-#### Backend
-- **Flask**: Lightweight RESTful API framework
-- **Python 3.13**: Primary backend language
-- **PyMuPDF (fitz)**: PDF text extraction and analysis
-- **python-docx**: Microsoft Word document processing
-- **pytesseract**: Optical Character Recognition (OCR)
-- **OpenCV (cv2)**: Video frame sampling and analysis (8 frames per video)
-- **Google Gemini 2.5 Flash**: Advanced language model for generation
-- **FAISS**: Fast similarity search and vector indexing
-- **pytest**: Backend unit testing framework
-- **Wikipedia API**: Historical content retrieval
+#### **Frontend Architecture** 🎨
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **UI Framework** | React 18.2 | Component-based interface with virtual DOM rendering |
+| **Routing** | React Router 6 | Client-side navigation and state management |
+| **Animations** | Framer Motion | Smooth transitions and interactive UI elements |
+| **Icons** | Lucide React | Comprehensive, accessible icon system |
+| **HTTP Client** | Axios | RESTful API communication with request/response interceptors |
+| **Testing** | Jest + React Testing Library | 40+ component tests with coverage reporting |
+
+#### **Backend Infrastructure** ⚙️
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **API Framework** | FastAPI | High-performance async REST API framework |
+| **Language** | Python 3.13 | Primary backend language with modern features |
+| **Async Processing** | asyncio + uvicorn | Non-blocking concurrent request handling |
+| **Testing** | pytest | 50+ unit tests with comprehensive coverage |
+| **API Documentation** | Pydantic + Swagger | Auto-generated interactive API documentation |
+
+#### **Content Processing & Extraction** 📄
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **PDF Extraction** | PyMuPDF (fitz) | High-fidelity text and metadata extraction |
+| **Word Documents** | python-docx | Structured parsing of DOCX format |
+| **Optical Character Recognition** | pytesseract + Tesseract | Text extraction from images and scanned documents |
+| **Video Analysis** | OpenCV (cv2) | Frame sampling and temporal processing (8 frames/video) |
+| **Voice Processing** | Web Speech API | Real-time speech-to-text transcription |
+
+#### **AI/ML & Generation Layer** 🧠
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **LLM Generation** | Google Gemini 2.5 Flash | Advanced language generation with low latency |
+| **Retrieval-Augmented** | CRAG (Correction Module) | Fact validation and hallucination correction |
+| **Vector Similarity** | FAISS | Fast approximate nearest neighbor search |
+| **Sentence Embeddings** | Sentence Transformers | Dense vector representation of content |
+| **Domain Classification** | Historical Keyword Analysis | Context-aware content categorization |
+
+#### **Voice-First Conversational AI** 🎙️
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Speech-to-Text** | Google Cloud Speech-to-Text / Web Speech API | Multilingual voice input processing |
+| **Natural Language Understanding** | LLM + RAG Pipeline | Intent extraction and query comprehension |
+| **Text-to-Speech** | Google Cloud Text-to-Speech | Natural-sounding response delivery |
+| **Voice Assistant Framework** | Custom voice conversation bot | Context-aware dialogue management |
+| **Real-time Streaming** | WebSocket support | Continuous voice interaction without latency |
+
+#### **Data & Retrieval Systems** 📚
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Vector Database** | FAISS with in-memory indexing | Millisecond-level similarity search |
+| **Knowledge Bases** | Wikipedia API + Smithsonian Open Access | Curated historical content retrieval |
+| **Domain Datasets** | Custom museum collections | Institution-specific artifact metadata |
+| **Feedback Storage** | JSON + structured logs | User interaction tracking for improvement |
+| **Cache Layer** | Redis (optional) | Response caching and session management |
+
+#### **Intelligent Feedback Loop System** 🔄
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **User Interaction Tracking** | Event logging pipeline | Capture queries, dwell time, user ratings |
+| **Feedback Collection** | Implicit + explicit signals | Track relevance, accuracy, and satisfaction |
+| **Vector Similarity Refinement** | Weight adjustment algorithms | Dynamically tune ranking for domain-specific queries |
+| **Model Adaptation** | Online learning mechanisms | Continuous improvement of retrieval quality |
+| **Performance Monitoring** | Metrics & analytics dashboard | Track system improvement across sessions |
 
 ---
 
@@ -124,18 +172,18 @@ The development of PastPortals targets the following key objectives:
 
 ### Current Implementation (v2.0)
 
-| Feature | Status | Implementation |
-|---------|--------|-----------------|
-| Document Processing | ✓ Implemented | PDF, DOCX, TXT, MD, JSON, CSV, HTML extraction |
-| Image Recognition | ✓ Implemented | Tesseract-based OCR for photographic content |
-| Video Analysis | ✓ Implemented | Frame sampling with temporal OCR processing |
-| Voice Interaction | ✓ Implemented | WebRTC recording + transcription pipeline |
-| Unified API | ✓ Implemented | Single endpoint supporting all input modalities |
-| Progress Tracking | ✓ Implemented | Real-time upload status visualization (0-100%) |
-| Content Validation | ✓ Implemented | Format and size limit enforcement with user feedback |
-| Fallback Responses | ✓ Implemented | Wikipedia-enriched responses for API unavailability |
-| Comprehensive Testing | ✓ Implemented | 50+ backend + 40+ frontend unit tests |
-| Museum Integration | ✓ Implemented | Curated museum data and virtual tour content |
+| Feature | Implementation |
+|---------|-----------------|
+| Document Processing | PDF, DOCX, TXT, MD, JSON, CSV, HTML extraction |
+| Image Recognition | Tesseract-based OCR for photographic content |
+| Video Analysis | Frame sampling with temporal OCR processing |
+| Voice Interaction | WebRTC recording + transcription pipeline |
+| Unified API | Single endpoint supporting all input modalities |
+| Progress Tracking | Real-time upload status visualization (0-100%) |
+| Content Validation | Format and size limit enforcement with user feedback |
+| Fallback Responses | Wikipedia-enriched responses for API unavailability |
+| Comprehensive Testing | 50+ backend + 40+ frontend unit tests |
+| Museum Integration | Curated museum data and virtual tour content |
 
 ### File Processing Specifications
 
@@ -148,7 +196,93 @@ The development of PastPortals targets the following key objectives:
 
 ---
 
-## Installation & Deployment
+## Intelligent Self-Improving Feedback Loop System
+
+![Self-Improving Intelligence - The Feedback Loop](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/feedback-loop.png)
+
+Every user interaction represents an opportunity for system learning. PastPortals v2 incorporates a sophisticated feedback pipeline that continuously refines retrieval accuracy, response relevance, and domain understanding.
+
+### Feedback Mechanism Architecture
+
+**Stage 1: User Feedback Captured**
+- Explicit ratings and implicit signals (re-queries, dwell time) logged per interaction
+- Domain context stored with each query-response pair
+- User satisfaction metrics tracked across museum exhibition types
+
+**Stage 2: Ranking Model Updated**  
+- Feedback dynamically adjusts vector similarity weights
+- Domain classifier confidence thresholds refined based on user validation
+- Historical accuracy data incorporated into retrieval ranking
+
+**Stage 3: System Evolution**
+- Pipeline gets measurably smarter with each user session
+- Adaptive behavior emerges from aggregated feedback signals
+- Cultural context understanding deepens through continuous learning
+
+### Key Benefits
+
+- **Adaptive Responses**: Museum guides learn visitor preferences and knowledge levels
+- **Domain Refinement**: Historical accuracy improves through expert feedback integration
+- **Personalization**: Interaction quality increases for returning visitors
+- **Continuous Validation**: User corrections automatically retrain ranking models
+
+---
+
+## Voice-First Conversational AI Bot
+
+![Voice-First Conversational AI](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/voice-ai.png)
+
+PastPortals v2 delivers a seamless, hands-free cultural exploration experience through intelligent voice-first conversational AI.
+
+### Core Voice Features
+
+| Feature | Technology | Implementation |
+|---------|-----------|-----------------|
+| **Speech-to-Text Input** | Google Cloud Speech-to-Text / Web Speech API | Converts user voice into text queries in real-time |
+| **AI Understanding** | LLM + RAG + CRAG Pipeline | Processes natural language intent with cultural context |
+| **Text-to-Speech Output** | Google Cloud Text-to-Speech | Delivers responses as natural, human-like voice |
+| **Real-Time Interaction** | WebSocket streaming protocol | Instant conversational feedback without latency |
+| **Context-Aware Dialogue** | Domain-aware conversation state | Adapts responses based on museum location and artifact |
+| **Multilingual Support** | 18+ language voice processing | Bilingual interactions for international visitors |
+
+### Use Case: Bilingual Voice Interaction
+
+A visitor asks in English about an ancient artifact. The system:
+1. Captures voice query in real-time
+2. Understands cultural/historical context
+3. Retrieves verified artifact information via CRAG pipeline
+4. Delivers response in visitor's native language via text-to-speech
+5. Captures feedback for future refinement
+
+### Technical Stack for Voice AI
+
+- **Voice Input**: Web Speech API + Whisper transcription
+- **Voice Processing**: TensorFlow Lite for on-device optimization
+- **Response Generation**: Gemini 2.5 Flash with domain context
+- **Voice Output**: Google Cloud TTS with natural prosody
+- **Conversation Management**: State machine for dialogue flow
+
+---
+
+## Data Flow: Multimodal Intelligent Pipeline
+
+![Data Flow - Multimodal Intelligent Pipeline](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/data-flow.png)
+
+PastPortals v2 represents a complete data journey, from diverse user inputs to intelligent, verified outputs, constantly refining itself through feedback.
+
+### Processing Pipeline
+
+1. **User Input Acquisition** → Text, Voice, Image, or Video submission
+2. **Multimodal Processing** → Speech-to-Text, OCR, Frame Extraction, Document Parsing
+3. **Domain Classification** → Historical/cultural context detection
+4. **Vector Retrieval** → FAISS semantic search of curated knowledge bases
+5. **LLM Generation** → Google Gemini 2.5 Flash response synthesis
+6. **Fact Validation** → CRAG correction module validates accuracy
+7. **Output Delivery** → Markdown-formatted response + voice synthesis
+8. **Feedback Collection** → User interaction logged for continuous improvement
+9. **System Refinement** → Ranking and understanding models updated
+
+---
 
 ### System Requirements
 
@@ -185,8 +319,12 @@ npm install
 **Terminal 1 - Backend Server:**
 ```powershell
 cd backend
+# FastAPI server (async support for concurrent requests)
+uvicorn app:app --reload --port 5000
+
+# Or using Python directly (if configured)
 python app.py
-# Server runs on http://localhost:5000
+# Server runs on http://localhost:5000 with auto-generated docs at http://localhost:5000/docs
 ```
 
 **Terminal 2 - Frontend Application:**
@@ -307,23 +445,31 @@ Comprehensive testing procedures including:
 
 ## Roadmap & Future Development
 
+### Version 2.0 (Current Release)
+✅ **CRAG (Correction + RAG)**: Fact-checking module for hallucination prevention  
+✅ **Voice-First Conversational AI**: Hands-free interaction with natural language understanding  
+✅ **Intelligent Feedback Loop**: Self-improving system that learns from user interactions  
+✅ **FastAPI Backend**: Async architecture for improved scalability and performance  
+✅ **Multimodal Processing**: Support for documents, images, videos, and voice input  
+
 ### Version 2.1 (Planned - Q2 2026)
-- Migration from Flask to **FastAPI** framework for improved async performance
-- Implementation of **CRAG (Correction + RAG)** validator layer
-- Development of intelligent feedback loop system
-- Asynchronous job processing for large document/video files
+- **Enhanced CRAG Validator**: Multi-stage fact verification with source attribution
+- **Feedback-Driven Ranking**: Advanced machine learning for personalized retrieval
+- **Asynchronous Job Processing**: Handle large document/video files without blocking
+- **Knowledge Graph Integration**: Semantic relationship mapping for cultural artifacts
+- **Performance Optimization**: Latency reduction to <500ms for voice interactions
 
 ### Version 2.2 (Planned - Q3 2026)
-- Voice-first conversational assistant with natural language understanding
-- Real-time speech-to-text integration
-- Text-to-speech response delivery
-- Voice-controlled navigation and actions
+- **Expanded Voice Features**: Speaker identification and conversation context memory
+- **Multilingual Enhancement**: Full 18+ language support with cultural context preservation
+- **Mobile Voice Assistant**: Dedicated mobile app with voice-first experience
+- **Real-time Collaboration**: Multiple visitors discussing same artifact with shared feedback
 
 ### Version 2.3+ (Planned - Q4 2026+)
-- Expanded multilingual support (18+ languages)
-- 3D artifact visualization and exploration
-- Collaborative features and user annotation capabilities
-- Docker and Kubernetes deployment manifests
+- **3D Artifact Visualization**: Interactive 3D models of museum pieces with voice guidance
+- **Augmented Reality Integration**: AR overlays powered by voice commands
+- **Collaborative Annotation**: Visitor annotations that improve cultural understanding
+- **Institutional Dashboard**: Museum analytics tracking visitor learning and engagement
 
 ---
 
