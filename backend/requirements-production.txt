@@ -1,11 +1,12 @@
-# Production dependencies (lightweight - no ML models)
-flask>=3.0.0
-flask-cors>=4.0.0
+# Production dependencies (lightweight - FastAPI based)
+fastapi>=0.115.0
+uvicorn>=0.30.0
+python-multipart>=0.0.9
 google-generativeai>=0.3.2
 requests>=2.31.0
 nest-asyncio>=1.5.8
 python-dotenv>=1.0.0
-flask-limiter>=3.5.0
+werkzeug>=2.3.0
 cryptography>=41.0.0
 pillow>=10.0.0
 wikipedia>=1.4.0
