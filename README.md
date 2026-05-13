@@ -17,12 +17,8 @@ PastPortals is an intelligent, AI-powered museum guide system developed as a res
 
 ### ❌ Limitations of Existing Systems
 
-Traditional museum systems rely on static methods—printed labels, brochures, audio guides—that fail to:
-- Provide interactive or personalized visitor experiences
-- Address diverse visitor questions and interests in depth
-- Support context-aware, domain-specific explanations
+Traditional museum systems rely on static methods—printed labels, brochures, audio guides, and system suffers from:-
 
-Conversely, LLM-based conversational systems suffer from:
 - **Hallucination**: Generation of inaccurate or unsupported information
 - **Lack of domain grounding**: Insufficient knowledge of historical and cultural contexts
 - **No transparency**: Inability to verify information sources
@@ -237,6 +233,14 @@ The development of PastPortals targets the following key objectives:
 
 PastPortals v2 delivers a seamless, hands-free cultural exploration experience through intelligent voice-first conversational AI.
 
+> A museum guide that listens, reasons, and speaks back in real time, turning every artifact into a conversation instead of a static label.
+
+### ✨ Why It Stands Out
+
+- **Hands-free discovery**: Ask questions naturally and get spoken answers without typing or navigating menus.
+- **Grounded responses**: Every reply is filtered through CRAG so the assistant stays accurate, contextual, and museum-ready.
+- **Multilingual conversations**: Visitors can interact in 18+ languages, making the experience accessible and global.
+
 ### 🗣️ Core Voice Features
 
 | Feature | Technology | Implementation |
@@ -248,14 +252,6 @@ PastPortals v2 delivers a seamless, hands-free cultural exploration experience t
 | **Context-Aware Dialogue** | Domain-aware conversation state | Adapts responses based on museum location and artifact |
 | **Multilingual Support** | 18+ language voice processing | Bilingual interactions for international visitors |
 
-### 🌐 Use Case: Bilingual Voice Interaction
-
-A visitor asks in English about an ancient artifact. The system:
-1. Captures voice query in real-time
-2. Understands cultural/historical context
-3. Retrieves verified artifact information via CRAG pipeline
-4. Delivers response in visitor's native language via text-to-speech
-5. Captures feedback for future refinement
 
 ### 🔬 Technical Stack for Voice AI
 
@@ -269,7 +265,8 @@ A visitor asks in English about an ancient artifact. The system:
 
 ## 🌊 Data Flow: Multimodal Intelligent Pipeline
 
-![Data Flow - Multimodal Intelligent Pipeline](https://raw.githubusercontent.com/ykjaat6104/PastPortals-V2/main/diagrams/data_flow_pipeline.png)
+<img width="3579" height="4179" alt="data_flow_pipeline" src="https://github.com/user-attachments/assets/a1d49f22-a3f5-4bbe-9a08-527f7b9ff3af" />
+
 
 PastPortals v2 represents a complete data journey, from diverse user inputs to intelligent, verified outputs, constantly refining itself through feedback.
 
@@ -436,33 +433,14 @@ Detailed technical documentation covering:
 
 ---
 
-## 🚀 Roadmap & Future Development
+## 🚀 Future Developments
 
-### 👏 Version 2.0 (Current Release)
-✅ **CRAG (Correction + RAG)**: Fact-checking module for hallucination prevention  
-✅ **Voice-First Conversational AI**: Hands-free interaction with natural language understanding  
-✅ **Intelligent Feedback Loop**: Self-improving system that learns from user interactions  
-✅ **FastAPI Backend**: Async architecture for improved scalability and performance  
-✅ **Multimodal Processing**: Support for documents, images, videos, and voice input  
-
-### 🌟 Version 2.1 (Planned - Q2 2026)
-- **Enhanced CRAG Validator**: Multi-stage fact verification with source attribution
-- **Feedback-Driven Ranking**: Advanced machine learning for personalized retrieval
-- **Asynchronous Job Processing**: Handle large document/video files without blocking
+### 🌟 Version 2.2 (Planned)
+- **3D Artifact Visualization**: Interactive 3D models of museum pieces with voice guidance
+- **Mobile Voice Assistant**: Dedicated mobile app with voice-first experience
 - **Knowledge Graph Integration**: Semantic relationship mapping for cultural artifacts
 - **Performance Optimization**: Latency reduction to <500ms for voice interactions
-
-### 💊 Version 2.2 (Planned - Q3 2026)
-- **Expanded Voice Features**: Speaker identification and conversation context memory
-- **Multilingual Enhancement**: Full 18+ language support with cultural context preservation
-- **Mobile Voice Assistant**: Dedicated mobile app with voice-first experience
-- **Real-time Collaboration**: Multiple visitors discussing same artifact with shared feedback
-
-### 🚀 Version 2.3+ (Planned - Q4 2026+)
-- **3D Artifact Visualization**: Interactive 3D models of museum pieces with voice guidance
-- **Augmented Reality Integration**: AR overlays powered by voice commands
 - **Collaborative Annotation**: Visitor annotations that improve cultural understanding
-- **Institutional Dashboard**: Museum analytics tracking visitor learning and engagement
 
 ---
 
@@ -511,10 +489,6 @@ Please submit issues via GitHub Issues with:
 4. Push to remote and create pull request
 5. Submit for code review and CI/CD validation
 
-### 💬 Technical Support
-- Documentation: See [CRAG_ARCHITECTURE_AND_PIPELINE_FLOW.md](CRAG_ARCHITECTURE_AND_PIPELINE_FLOW.md)
-- GitHub Discussions: Community Q&A and feature discussion
-- Issue Tracker: Bug reports and feature requests
 
 ---
 
