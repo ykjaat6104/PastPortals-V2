@@ -1,12 +1,12 @@
 """
 Quick start script to populate FAISS database with essential historical content
 """
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from ingestion import populate_vector_database
-from config import get_config
+try:
+    from .ingestion import populate_vector_database
+    from .config import get_config
+except ImportError:  # pragma: no cover - fallback for direct script execution
+    from ingestion import populate_vector_database
+    from config import get_config
 
 # Essential topics for quick start (50 topics)
 QUICK_START_TOPICS = [

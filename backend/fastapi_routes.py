@@ -129,8 +129,12 @@ def _build_related_topics(search_term: str) -> list[dict]:
             summary = result.get("summary") or result.get("extract") or ""
             if summary:
                 topics.append({
+                    "query": result.get("query", search_term),
                     "title": result.get("title", search_term),
                     "extract": summary,
+                    "description": result.get("description", ""),
+                    "url": result.get("url", ""),
+                    "search_results": result.get("search_results", []),
                 })
     except Exception:
         pass
@@ -284,10 +288,13 @@ async def quick_facts(topic: str):
 
     return {
         "topic": topic,
+        "query": wikipedia_info.get("query", topic),
         "summary": wikipedia_info.get("extract", ""),
         "description": wikipedia_info.get("description", ""),
         "thumbnail": wikipedia_info.get("thumbnail", ""),
         "url": wikipedia_info.get("url", ""),
+        "search_results": wikipedia_info.get("search_results", []),
+        "top_result": wikipedia_info.get("top_result", {}),
         "timestamp": datetime.now().isoformat(),
     }
 
@@ -295,9 +302,29 @@ async def quick_facts(topic: str):
 @qa_router.get("/related/{topic}")
 async def related_topics(topic: str):
     related = await asyncio.to_thread(get_related_articles, topic, 5)
+    detailed_related = []
+    for related_topic in related:
+        result = await asyncio.to_thread(search_and_summarize, related_topic)
+        if isinstance(result, dict):
+            detailed_related.append({
+                "title": result.get("title", related_topic),
+                "extract": result.get("extract", ""),
+                "description": result.get("description", ""),
+                "url": result.get("url", ""),
+                "search_results": result.get("search_results", []),
+            })
+        else:
+            detailed_related.append({
+                "title": related_topic,
+                "extract": "",
+                "description": "",
+                "url": "",
+                "search_results": [],
+            })
     return {
         "topic": topic,
         "related_topics": related,
+        "related_topics_detail": detailed_related,
         "count": len(related),
         "timestamp": datetime.now().isoformat(),
     }
@@ -607,7 +634,7 @@ async def health():
     cfg = get_config()
     vector_db_exists = vector_index is not None and text_map is not None
     vector_count = vector_index.ntotal if vector_db_exists else 0
-    embeddings_enabled = cfg.FLASK_ENV != "production"
+    embeddings_enabled = cfg.ENV != "production"
 
     return {
         "status": "online",
@@ -622,7 +649,7 @@ async def health():
             "museum_api": True,
         },
         "version": "2.0.0",
-        "environment": cfg.FLASK_ENV,
+        "environment": cfg.ENV,
     }
 
 
@@ -667,14 +694,14 @@ async def get_status():
         except ImportError:
             from utils.ai_utils import get_embeddings_model
 
-        embeddings = get_embeddings_model(config.EMBEDDING_MODEL) if config.FLASK_ENV != "production" else None
+        embeddings = get_embeddings_model(config.EMBEDDING_MODEL) if config.ENV != "production" else None
 
         return {
             "system": {
                 "status": "operational",
                 "uptime": "N/A",
                 "version": "2.0.0",
-                "environment": config.FLASK_ENV,
+                "environment": config.ENV,
             },
             "ai": {
                 "gemini_configured": is_gemini_configured(),

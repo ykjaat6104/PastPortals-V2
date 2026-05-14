@@ -2,16 +2,24 @@
 Content ingestion pipeline for populating FAISS vector database
 with worldwide historical content from Wikipedia and other sources
 """
-import requests
 import time
 from datetime import datetime
-from utils import (
-    create_vector_db,
-    add_to_vector_db,
-    save_vector_db,
-    load_vector_db,
-    get_wikipedia_summary
-)
+try:
+    from .utils import (
+        create_vector_db,
+        add_to_vector_db,
+        save_vector_db,
+        load_vector_db,
+        get_wikipedia_summary,
+    )
+except ImportError:  # pragma: no cover - fallback for direct script execution
+    from utils import (
+        create_vector_db,
+        add_to_vector_db,
+        save_vector_db,
+        load_vector_db,
+        get_wikipedia_summary,
+    )
 
 # Comprehensive list of historical topics to populate
 HISTORICAL_TOPICS = [
@@ -276,7 +284,10 @@ def run_ingestion_pipeline(config):
 
 if __name__ == "__main__":
     # Can be run standalone for testing
-    from config import get_config
+    try:
+        from .config import get_config
+    except ImportError:  # pragma: no cover - fallback for direct script execution
+        from config import get_config
     
     config = get_config()
     run_ingestion_pipeline(config)

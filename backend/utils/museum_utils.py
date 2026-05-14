@@ -4,6 +4,14 @@ Museum API integration utilities
 import requests
 from datetime import datetime
 
+
+def _safe_list(value):
+    if isinstance(value, list):
+        return value
+    if value is None:
+        return []
+    return [value]
+
 def search_smithsonian(query, api_key=None, limit=10):
     """
     Search Smithsonian Open Access API
@@ -35,21 +43,33 @@ def search_smithsonian(query, api_key=None, limit=10):
             data = response.json()
             
             artifacts = []
-            for item in data.get('response', {}).get('rows', []):
+            for rank, item in enumerate(data.get('response', {}).get('rows', [])[:limit], start=1):
+                content = item.get('content', {})
+                descriptive = content.get('descriptiveNonRepeating', {})
+                freetext = content.get('freetext', {})
                 artifact = {
+                    'rank': rank,
                     'id': item.get('id', ''),
                     'title': item.get('title', ''),
                     'type': item.get('type', ''),
-                    'description': item.get('content', {}).get('descriptiveNonRepeating', {}).get('record_ID', ''),
-                    'date': item.get('content', {}).get('indexedStructured', {}).get('date', ['']),
-                    'culture': item.get('content', {}).get('freetext', {}).get('dataSource', []),
+                    'description': descriptive.get('record_ID', ''),
+                    'summary': descriptive.get('online_media_type', ''),
+                    'date': _safe_list(content.get('indexedStructured', {}).get('date', [''])),
+                    'culture': _safe_list(freetext.get('dataSource', [])),
                     'images': [],
                     'url': f"https://www.si.edu/object/{item.get('id', '')}",
                     'source': 'Smithsonian'
                 }
+                artifact['detail'] = {
+                    'record_id': item.get('id', ''),
+                    'title': item.get('title', ''),
+                    'type': item.get('type', ''),
+                    'date': artifact['date'],
+                    'culture': artifact['culture'],
+                }
                 
                 # Extract images
-                online_media = item.get('content', {}).get('descriptiveNonRepeating', {}).get('online_media', {}).get('media', [])
+                online_media = descriptive.get('online_media', {}).get('media', [])
                 for media in online_media[:3]:  # Limit to 3 images
                     if media.get('type') == 'Images':
                         artifact['images'].append({
@@ -126,15 +146,23 @@ def search_multiple_museums(query, api_key=None, limit_per_source=5):
         dict: Results grouped by source
     """
     results = {
+        'query': query,
         'smithsonian': [],
         'europeana': [],
-        'total_count': 0
+        'total_count': 0,
+        'search_details': [],
     }
     
     # Search Smithsonian
     smithsonian_results = search_smithsonian(query, api_key, limit_per_source)
     results['smithsonian'] = smithsonian_results
     results['total_count'] += len(smithsonian_results)
+    results['search_details'].append({
+        'source': 'Smithsonian',
+        'count': len(smithsonian_results),
+        'query': query,
+        'sample_titles': [artifact.get('title', '') for artifact in smithsonian_results[:3]],
+    })
     
     # Add other museum APIs here as they become available
     

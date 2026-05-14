@@ -9,6 +9,17 @@ HEADERS = {
     'User-Agent': 'AIMuseumGuide/1.0 (Educational Project; Python/3.x) requests/2.x'
 }
 
+
+def _build_wikipedia_url(title):
+    return f"https://en.wikipedia.org/wiki/{title.replace(' ', '_')}"
+
+
+def _normalize_query(query):
+    clean_query = query or ''
+    for prefix in ('tell me about', 'what is', 'who was', 'who is', 'explain the', 'give me'):
+        clean_query = clean_query.replace(prefix, '')
+    return clean_query.strip()
+
 def search_wikipedia(query, limit=3):
     """
     Search Wikipedia for articles
@@ -21,8 +32,7 @@ def search_wikipedia(query, limit=3):
         list: List of search results with title and snippet
     """
     try:
-        # Clean query
-        clean_query = query.replace("tell me about", "").replace("what is", "").replace("who was", "").strip()
+        clean_query = _normalize_query(query)
         
         search_url = "https://en.wikipedia.org/w/api.php"
         search_params = {
@@ -37,7 +47,21 @@ def search_wikipedia(query, limit=3):
         
         if response.status_code == 200:
             data = response.json()
-            return data.get('query', {}).get('search', [])
+            results = []
+            for rank, item in enumerate(data.get('query', {}).get('search', [])[:limit], start=1):
+                title = item.get('title', '')
+                results.append({
+                    'rank': rank,
+                    'title': title,
+                    'pageid': item.get('pageid'),
+                    'snippet': item.get('snippet', ''),
+                    'size': item.get('size'),
+                    'wordcount': item.get('wordcount'),
+                    'timestamp': item.get('timestamp'),
+                    'url': _build_wikipedia_url(title) if title else '',
+                })
+
+            return results
         
         return []
         
@@ -135,9 +159,20 @@ def search_and_summarize(query):
         
         # Get summary of first result
         top_result = search_results[0]
-        summary = get_wikipedia_summary(top_result['title'])
-        
-        return summary
+        summary = get_wikipedia_summary(top_result['title']) or {}
+
+        return {
+            'query': query,
+            'normalized_query': _normalize_query(query),
+            'search_results': search_results,
+            'top_result': top_result,
+            'title': summary.get('title', top_result['title']),
+            'extract': summary.get('extract', ''),
+            'description': summary.get('description', ''),
+            'thumbnail': summary.get('thumbnail', ''),
+            'url': summary.get('url', top_result.get('url', '')),
+            'timestamp': summary.get('timestamp', datetime.now().isoformat()),
+        }
         
     except Exception as e:
         print(f"Wikipedia search and summarize error: {str(e)}")

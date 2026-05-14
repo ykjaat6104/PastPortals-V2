@@ -1,9 +1,10 @@
-"""
+""""
 Core AI utilities for Gemini integration and embeddings
 """
 import google.generativeai as genai
 from functools import lru_cache
 import os
+from typing import Any
 
 # Configure warnings
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'
@@ -12,6 +13,8 @@ os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = '600'
 # Global AI state
 gemini_model = None
 api_key_configured = False
+gemini_model_name = None
+gemini_last_error = None
 
 @lru_cache(maxsize=1)
 def get_embeddings_model(model_name="sentence-transformers/all-mpnet-base-v2"):
@@ -53,6 +56,13 @@ def setup_gemini(api_key, models_to_try=None):
         bool: True if setup successful, False otherwise
     """
     global gemini_model, api_key_configured
+    global gemini_model_name, gemini_last_error
+    gemini_last_error = None
+    # Allow skipping expensive/quota-prone startup detection via env
+    skip_flag = os.getenv('APP_SKIP_GEMINI_SETUP', os.getenv('SKIP_GEMINI_SETUP', 'false')).lower() == 'true'
+    if skip_flag:
+        print("Skipping Gemini auto-detection because APP_SKIP_GEMINI_SETUP=true")
+        return False
     
     if not models_to_try:
         models_to_try = [
@@ -77,20 +87,27 @@ def setup_gemini(api_key, models_to_try=None):
             ]
             
             if text_models:
-                # Use the first available text generation model
-                model_name = text_models[0].name
-                print(f" Trying model: {model_name}")
-                
-                model = genai.GenerativeModel(model_name)
-                test_response = model.generate_content("Hello")
-                
-                if test_response and test_response.text:
-                    print(f" Successfully configured Gemini model: {model_name}")
-                    gemini_model = model
-                    api_key_configured = True
-                    return True
+                # Prefer currently available models first, so we avoid stale fallback names.
+                for candidate in text_models:
+                    model_name = candidate.name
+                    try:
+                        print(f" Trying model: {model_name}")
+                        model = genai.GenerativeModel(model_name)
+                        test_response = model.generate_content("Hello")
+
+                        if test_response and test_response.text:
+                            print(f" Successfully configured Gemini model: {model_name}")
+                            gemini_model = model
+                            gemini_model_name = model_name
+                            api_key_configured = True
+                            return True
+                    except Exception as exc:
+                        gemini_last_error = str(exc)
+                        print(f" Model {model_name} failed: {gemini_last_error}")
+                        continue
         except Exception as e:
             print(f" Model detection failed: {str(e)}, trying fallback...")
+            gemini_last_error = str(e)
         
         # Fallback: Try predefined models
         for model_name in models_to_try:
@@ -102,9 +119,11 @@ def setup_gemini(api_key, models_to_try=None):
                 if test_response and test_response.text:
                     print(f" Successfully configured Gemini model: {model_name}")
                     gemini_model = model
+                    gemini_model_name = model_name
                     api_key_configured = True
                     return True
             except Exception as e:
+                gemini_last_error = str(e)
                 print(f"{model_name} failed: {str(e)}")
                 continue
         
@@ -113,6 +132,7 @@ def setup_gemini(api_key, models_to_try=None):
         
     except Exception as e:
         print(f"Gemini API Configuration Error: {str(e)}")
+        gemini_last_error = str(e)
         return False
 
 def get_gemini_model():
@@ -124,6 +144,16 @@ def is_gemini_configured():
     """Check if Gemini is configured and ready"""
     global api_key_configured
     return api_key_configured
+
+
+def get_gemini_status() -> dict[str, Any]:
+    """Return a structured Gemini status payload for diagnostics."""
+    return {
+        'configured': api_key_configured,
+        'model_name': gemini_model_name,
+        'last_error': gemini_last_error,
+        'ready': gemini_model is not None,
+    }
 
 def generate_content(prompt, temperature=0.7, max_tokens=2048):
     """

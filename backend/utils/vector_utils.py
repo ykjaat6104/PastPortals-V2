@@ -182,16 +182,84 @@ def search_vector_db(query, index, text_map, k=3):
         
         # Extract relevant contexts
         relevant_contexts = []
+        detailed_results = []
         for i in range(min(k, len(retrieved_indices[0]))):
             idx = retrieved_indices[0][i]
             if idx != -1 and str(idx) in text_map:
-                relevant_contexts.append(text_map[str(idx)])
+                text = text_map[str(idx)]
+                relevant_contexts.append(text)
+                detailed_results.append({
+                    'rank': i + 1,
+                    'index': int(idx),
+                    'distance': float(distances[0][i]) if len(distances[0]) > i else None,
+                    'score': round(1 / (1 + float(distances[0][i])), 4) if len(distances[0]) > i else None,
+                    'text': text,
+                    'preview': text[:300],
+                })
         
         return relevant_contexts
         
     except Exception as e:
         print(f"Error searching vector database: {str(e)}")
         return []
+
+
+def search_vector_db_detailed(query, index, text_map, k=3):
+    """Search FAISS index and return detailed similarity results."""
+    try:
+        from .ai_utils import get_embeddings_model
+
+        if not index or not text_map or index.ntotal == 0:
+            return {
+                'query': query,
+                'results': [],
+                'total': 0,
+                'status': 'empty',
+            }
+
+        embeddings_model = get_embeddings_model()
+        if not embeddings_model:
+            return {
+                'query': query,
+                'results': [],
+                'total': 0,
+                'status': 'embeddings_unavailable',
+            }
+
+        query_embedding = embeddings_model.embed_query(query)
+        query_embedding = np.array([query_embedding], dtype=np.float32)
+        distances, retrieved_indices = index.search(query_embedding, min(k, index.ntotal))
+
+        results = []
+        for i in range(min(k, len(retrieved_indices[0]))):
+            idx = retrieved_indices[0][i]
+            if idx != -1 and str(idx) in text_map:
+                text = text_map[str(idx)]
+                results.append({
+                    'rank': i + 1,
+                    'index': int(idx),
+                    'distance': float(distances[0][i]) if len(distances[0]) > i else None,
+                    'score': round(1 / (1 + float(distances[0][i])), 4) if len(distances[0]) > i else None,
+                    'text': text,
+                    'preview': text[:300],
+                })
+
+        return {
+            'query': query,
+            'results': results,
+            'total': len(results),
+            'status': 'ok',
+        }
+
+    except Exception as e:
+        print(f"Error searching vector database (detailed): {str(e)}")
+        return {
+            'query': query,
+            'results': [],
+            'total': 0,
+            'status': 'error',
+            'error': str(e),
+        }
 
 def get_vector_db_stats(index, text_map):
     """

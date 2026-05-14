@@ -67,9 +67,9 @@ def create_app() -> FastAPI:
         print("\n" + "=" * 60)
         print("PASTPORTALS - Backend Server")
         print("=" * 60)
-        print(f"\nEnvironment: {config.FLASK_ENV}")
+        print(f"\nEnvironment: {config.ENV}")
 
-        if config.FLASK_ENV == "production":
+        if config.ENV == "production":
             print("   Mode: Production (lightweight)")
             print("   AI Models: Using Gemini API only")
             print("   Vector DB: Disabled (uses Wikipedia API)")
@@ -96,11 +96,14 @@ def create_app() -> FastAPI:
         except ImportError:  # pragma: no cover - direct execution fallback
             from utils.ai_utils import setup_gemini
 
-        if config.GEMINI_API_KEY:
-            ai_configured = setup_gemini(config.GEMINI_API_KEY)
-            ai_status = "Configured" if ai_configured else "Configuration failed"
+        if getattr(config, 'SKIP_GEMINI_SETUP', False):
+            ai_status = "Skipped (APP_SKIP_GEMINI_SETUP=true)"
         else:
-            ai_status = "Not configured (use /api/configure endpoint)"
+            if config.GEMINI_API_KEY:
+                ai_configured = setup_gemini(config.GEMINI_API_KEY)
+                ai_status = "Configured" if ai_configured else "Configuration failed"
+            else:
+                ai_status = "Not configured (use /api/configure endpoint)"
         print(f"   Gemini AI: {ai_status}")
 
         if config.SMITHSONIAN_API_KEY:
@@ -112,7 +115,7 @@ def create_app() -> FastAPI:
         print("   Wikipedia API: Ready")
         print("=" * 60)
         print(f"Server Ready - http://{config.HOST}:{config.PORT}")
-        print(f"Environment: {config.FLASK_ENV}")
+        print(f"Environment: {config.ENV}")
         print(f"CORS Origins: {', '.join(config.CORS_ORIGINS)}")
         print("=" * 60 + "\n")
 

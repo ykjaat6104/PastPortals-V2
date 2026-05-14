@@ -13,13 +13,16 @@ if env_path.exists():
 
 class Config:
     """Base configuration"""
-    # Flask
+    # Application runtime
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
-    FLASK_ENV = os.getenv('FLASK_ENV', 'development')
-    DEBUG = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
+    ENV = os.getenv('APP_ENV', os.getenv('FLASK_ENV', 'development'))
+    DEBUG = os.getenv('APP_DEBUG', os.getenv('FLASK_DEBUG', 'True')).lower() == 'true'
+
+    # Backward compatibility aliases for legacy references.
+    FLASK_ENV = ENV
     
     # Server
-    PORT = int(os.getenv('FLASK_PORT', 5000))
+    PORT = int(os.getenv('APP_PORT', os.getenv('FLASK_PORT', 5000)))
     HOST = '0.0.0.0'
     CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:3001,http://localhost:3002').split(',')
     
@@ -56,6 +59,8 @@ class Config:
         'models/gemini-1.5-flash',
         'models/gemini-1.5-pro'
     ]
+    # Optionally skip Gemini auto-detection at startup (useful to avoid quota delays)
+    SKIP_GEMINI_SETUP = os.getenv('APP_SKIP_GEMINI_SETUP', 'False').lower() == 'true'
     
     # Performance
     CACHE_TIMEOUT = 3600  # 1 hour
@@ -78,5 +83,5 @@ config = {
 
 def get_config():
     """Get configuration based on environment"""
-    env = os.getenv('FLASK_ENV', 'development')
+    env = os.getenv('APP_ENV', os.getenv('FLASK_ENV', 'development'))
     return config.get(env, config['default'])
