@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Search, Clock, Building2, Settings, History, Layers3 } from 'lucide-react';
+import { Home, Clock, Building2, Settings, History, Layers3 } from 'lucide-react';
 import { useAPI } from '../contexts/APIContext';
 
 const Sidebar = ({ onSettingsClick }) => {
@@ -14,13 +14,12 @@ const Sidebar = ({ onSettingsClick }) => {
     return flags[code] || '🇬🇧';
   };
 
-  const navItems = [
-    { path: '/', icon: Home, label: 'Explore' },
-    { path: '/search', icon: Search, label: 'Search' },
-    { path: '/multimodal', icon: Layers3, label: 'Multimodal' },
-    { path: '/timeline', icon: Clock, label: 'Timeline' },
-    { path: '/museums', icon: Building2, label: 'Museums' }
-  ];
+    const navItems = [
+      { path: '/', icon: Home, label: 'Explore' },
+      { path: '/search', icon: Layers3, label: 'Search' },
+      { path: '/timeline', icon: Clock, label: 'Timeline' },
+      { path: '/museums', icon: Building2, label: 'Museums' }
+    ];
 
   return (
     <aside className="sidebar">
@@ -53,13 +52,13 @@ const Sidebar = ({ onSettingsClick }) => {
 
       <div className="sidebar-footer">
         <NavLink
-          to="/search"
+          to="/history"
           className={({ isActive }) =>
             `sidebar-footer-link ${isActive ? 'active' : ''}`
           }
         >
           <History size={20} />
-          <span>Search History</span>
+          <span>History</span>
         </NavLink>
 
         <button 

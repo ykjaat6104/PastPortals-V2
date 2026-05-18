@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -6,7 +6,6 @@ import {
   Send, 
   Loader2, 
   MessageCircle, 
-  Globe, 
   FileText,
   Search,
   Clock,
@@ -15,11 +14,12 @@ import {
 } from 'lucide-react';
 import { useAPI } from '../contexts/APIContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { getTopicImages } from '../utils/imageSearch';
 
 const HistoryExplorer = () => {
   const location = useLocation();
   const { askQuestion, translateText, summarizeText, isConfigured, isLoading } = useAPI();
-  const { showSuccess, showError, showInfo, showLoading, dismissLoading } = useNotification();
+  const { showSuccess, showError, showLoading, dismissLoading } = useNotification();
 
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState(null);
@@ -29,6 +29,7 @@ const HistoryExplorer = () => {
   const [translation, setTranslation] = useState(null);
   const [summary, setSummary] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState('Spanish');
+  const [relatedImages, setRelatedImages] = useState([]);
 
   const languages = [
     'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Russian',
@@ -36,17 +37,7 @@ const HistoryExplorer = () => {
     'Telugu', 'Marathi', 'Tamil', 'Gujarati', 'Urdu', 'Punjabi'
   ];
 
-  useEffect(() => {
-    // Handle navigation with auto-ask functionality
-    if (location.state?.question && location.state?.autoAsk && isConfigured) {
-      setQuestion(location.state.question);
-      handleAskQuestion(location.state.question);
-    } else if (location.state?.question) {
-      setQuestion(location.state.question);
-    }
-  }, [location.state, isConfigured]);
-
-  const handleAskQuestion = async (questionText = question) => {
+  const handleAskQuestion = useCallback(async (questionText = question) => {
     if (!questionText.trim()) {
       showError('Please enter a question');
       return;
@@ -61,6 +52,7 @@ const HistoryExplorer = () => {
     setResponse(null);
     setTranslation(null);
     setSummary(null);
+    setRelatedImages([]);
     setShowTranslation(false);
     setShowSummary(false);
 
@@ -69,6 +61,9 @@ const HistoryExplorer = () => {
     try {
       const result = await askQuestion(questionText);
       setResponse(result);
+      const imageSeed = result?.wikipedia_info?.title || questionText;
+      const backendImages = Array.isArray(result?.related_images) ? result.related_images : [];
+      setRelatedImages(backendImages.length > 0 ? backendImages : await getTopicImages(imageSeed, 4).catch(() => []));
       showSuccess('Response generated successfully!');
     } catch (error) {
       showError(error.message || 'Failed to get response');
@@ -77,7 +72,17 @@ const HistoryExplorer = () => {
       setIsProcessing(false);
       dismissLoading(loadingToast);
     }
-  };
+  }, [question, showError, isConfigured, showLoading, askQuestion, showSuccess, dismissLoading]);
+
+  useEffect(() => {
+    // Handle navigation with auto-ask functionality
+    if (location.state?.question && location.state?.autoAsk && isConfigured) {
+      setQuestion(location.state.question);
+      handleAskQuestion(location.state.question);
+    } else if (location.state?.question) {
+      setQuestion(location.state.question);
+    }
+  }, [location.state, isConfigured, handleAskQuestion]);
 
   const handleTranslate = async () => {
     if (!response?.answer) return;
@@ -207,6 +212,23 @@ const HistoryExplorer = () => {
                 <div className="response-text">
                   <ReactMarkdown>{response.answer}</ReactMarkdown>
                 </div>
+
+                {relatedImages.length > 0 && (
+                  <div className="wikipedia-section">
+                    <h4>Related Images</h4>
+                    <div className="multimodal-visual-grid">
+                      {relatedImages.slice(0, 4).map((image, index) => (
+                        <figure key={`${image.title}-${index}`} className="multimodal-visual-card">
+                          <img src={image.url} alt={image.title} loading="lazy" />
+                          <figcaption>
+                            <strong>{image.title}</strong>
+                            <span>{image.source}</span>
+                          </figcaption>
+                        </figure>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Wikipedia Info */}
                 {response.wikipedia_info && (
