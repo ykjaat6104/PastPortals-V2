@@ -10,6 +10,7 @@ import re
 
 import numpy as np
 from PIL import Image
+from PIL import ImageEnhance, ImageFilter, ImageOps
 
 try:
     import cv2
@@ -29,6 +30,10 @@ except Exception:  # pragma: no cover - optional dependency
 try:
     import pytesseract
 except Exception:  # pragma: no cover - optional dependency
+    # pytesseract requires Tesseract binary to be installed on the system
+    # Windows: https://github.com/UB-Mannheim/tesseract/releases
+    # macOS: brew install tesseract
+    # Linux: apt-get install tesseract-ocr
     pytesseract = None
 
 
@@ -46,6 +51,74 @@ def _read_text_file(file_path: Path) -> str:
         except Exception:
             continue
     return ''
+
+
+def _preprocess_for_ocr(image: Image.Image) -> list[Image.Image]:
+    """Generate a small set of OCR-friendly image variants."""
+    grayscale = ImageOps.grayscale(image)
+    enlarged = grayscale.resize((max(grayscale.width * 2, grayscale.width), max(grayscale.height * 2, grayscale.height)))
+    sharpened = enlarged.filter(ImageFilter.SHARPEN)
+    contrast = ImageEnhance.Contrast(sharpened).enhance(1.8)
+    threshold = contrast.point(lambda pixel: 255 if pixel > 155 else 0)
+    return [grayscale, enlarged, contrast, threshold]
+
+
+def _ocr_image_text(image: Image.Image) -> tuple[str, list[str]]:
+    if pytesseract is None:
+        return '', ['OCR package not available. Install pytesseract to enable text extraction from images.']
+
+    configs = [
+        '--psm 6 --oem 3',
+        '--psm 11 --oem 3',
+        '--psm 4 --oem 3',
+    ]
+    best_text = ''
+    notes: list[str] = []
+
+    for variant in _preprocess_for_ocr(image):
+        for config in configs:
+            try:
+                text = pytesseract.image_to_string(variant, config=config).strip()
+                if len(text) > len(best_text):
+                    best_text = text
+                if text and len(text) > 40:
+                    return text, []
+            except Exception as exc:
+                notes.append(f'OCR attempt failed with config {config}: {exc}')
+
+    if not best_text:
+        notes.append('OCR returned no readable text')
+    return best_text, notes
+
+
+def _ocr_pdf_text(file_path: Path, max_pages: int = 8) -> tuple[str, list[str]]:
+    if fitz is None:
+        return '', []
+
+    try:
+        document = fitz.open(str(file_path))
+        page_texts: list[str] = []
+        notes: list[str] = []
+
+        for page_index, page in enumerate(document):
+            if page_index >= max_pages:
+                break
+
+            text = page.get_text().strip()
+            if text:
+                page_texts.append(text)
+                continue
+
+            pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
+            image = Image.frombytes('RGB', [pixmap.width, pixmap.height], pixmap.samples)
+            ocr_text, ocr_notes = _ocr_image_text(image)
+            if ocr_text:
+                page_texts.append(ocr_text)
+            notes.extend(ocr_notes)
+
+        return '\n\n'.join(page_texts).strip(), notes
+    except Exception as exc:
+        return '', [f'PDF OCR failed: {exc}']
 
 
 def _extract_pdf_text(file_path: Path) -> str:
@@ -75,18 +148,16 @@ def _extract_docx_text(file_path: Path) -> str:
 
 
 def _ocr_image(file_path: Path) -> tuple[str, list[str]]:
-    notes = []
-    if pytesseract is None:
-        return '', ['OCR package not available']
-
     try:
         image = Image.open(file_path)
-        text = pytesseract.image_to_string(image)
-        if not text.strip():
-            notes.append('OCR returned no readable text')
+        text, notes = _ocr_image_text(image)
         return text.strip(), notes
     except Exception as exc:
-        notes.append(f'OCR failed: {exc}')
+        error_str = str(exc)
+        if 'tesseract' in error_str.lower() or 'path' in error_str.lower():
+            notes.append('OCR service unavailable: Tesseract is not installed or not in PATH. Install tesseract-ocr to enable image text extraction.')
+        else:
+            notes.append(f'OCR failed: Unable to extract text from image')
         return '', notes
 
 
@@ -201,7 +272,14 @@ def extract_multimodal_content(file_path: str | Path, filename: str | None = Non
 
     if suffix in PDF_EXTENSIONS:
         text = _extract_pdf_text(path)
-        notes = ['PDF text extracted using PyMuPDF'] if text else ['No embedded PDF text found; OCR may be needed']
+        notes = ['PDF text extracted using PyMuPDF'] if text else ['No embedded PDF text found; OCR fallback attempted']
+        if not text:
+            ocr_text, ocr_notes = _ocr_pdf_text(path)
+            if ocr_text:
+                text = ocr_text
+                notes = ['PDF OCR extracted scanned document text'] + ocr_notes
+            elif ocr_notes:
+                notes.extend(ocr_notes)
         return {
             'text': text,
             'method': 'pdf',
@@ -258,7 +336,8 @@ You are a world-class historical research assistant.
 You are analyzing a user-provided {input_mode} input. Use the extracted content to produce a detailed, structured response.
 
 Requirements:
-- Write approximately 900-1100 words.
+- Write approximately 900-1100 words minimum, and aim for at least 1000 words when the evidence supports it.
+- Prefer 1100-1400 words when the evidence supports it.
 - Use markdown headings.
 - Include: Overview, Historical Context, Key Facts, Cultural or Visual Analysis, Modern Legacy, Related Topics.
 - If the extracted text is noisy, explain that and interpret cautiously.
@@ -313,6 +392,12 @@ def generate_multimodal_fallback_response(question: str, input_mode: str, extrac
     response_parts.append("\n### Cultural or Visual Analysis\nThe material may contain references to people, places, artworks, rituals, events, architecture, or textual traditions. Those clues help place it within broader historical and cultural narratives.")
     response_parts.append("\n### Modern Legacy\nEven when the upload is old or archival, it may still influence education, public memory, museum interpretation, or media today.")
 
+    response_parts.append("\n### Deeper Interpretation\nA richer reading of the material should identify the primary subject, the visual or textual evidence that supports that reading, and the historical framework that best explains it. If the item is a document, consider authorship, audience, genre, and purpose. If it is an image, consider composition, iconography, inscriptions, symbols, color, and setting. If it is a video, consider sequence, motion, repetition, and the relationship between frames. Those clues collectively help distinguish a superficial description from a historically grounded interpretation.")
+
+    response_parts.append("\n### Contextual Questions\nUseful follow-up questions include: what period or region does this belong to, who created it, who used or viewed it, what materials or technologies were involved, and why did it matter in its original setting? Answering those questions usually produces a much stronger historical analysis than a surface-level summary.")
+
+    response_parts.append("\n### Expanded Historical Notes\nThe uploaded material may also connect to trade routes, migration, empire, religion, science, statecraft, or artistic patronage. Even small details such as a caption, watermark, seal, costume, building style, or repeated motif can anchor the item in a broader historical timeline. When that happens, the interpretation should name the likely tradition or institution, explain the evidence, and describe the significance in accessible language.")
+
     if related_topics:
         response_parts.append("\n### Related Topics\n")
         for topic in related_topics[:5]:
@@ -320,6 +405,8 @@ def generate_multimodal_fallback_response(question: str, input_mode: str, extrac
             extract = topic.get('extract', '').strip()
             if extract:
                 response_parts.append(f"#### {title}\n{extract}")
+
+    response_parts.append("\n### Suggested Next Steps\nTo go deeper, compare this upload against closely related artifacts, search for the main people or places named in the content, and review one or two neighboring topics from the same era or collection. That approach usually reveals whether the item is ceremonial, administrative, artistic, military, domestic, or commemorative in nature.")
 
     return '\n'.join(response_parts)
 

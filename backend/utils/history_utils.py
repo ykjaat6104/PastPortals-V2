@@ -206,7 +206,7 @@ You are a world-class historian and museum guide with expertise in global histor
 - If information is uncertain, acknowledge limitations
 - For non-historical questions, politely redirect to historical topics
 - Cite sources when using provided context
-- Target a full-page response: approximately 900-1100 words total
+- Target a full-page response: at least 1000 words total, ideally 1100-1400 words if enough context is available
 - Do not return a short summary unless the topic genuinely lacks reliable data
 
 {context_section}
@@ -215,12 +215,12 @@ You are a world-class historian and museum guide with expertise in global histor
 {question}
 
 **Response Structure:**
-1. **Overview** - 120-160 words
-2. **Historical Context** - 140-180 words
-3. **Key Facts** - 180-240 words with concrete dates and figures
-4. **Cultural Impact** - 140-180 words
-5. **Interesting Details** - 120-160 words
-6. **Modern Legacy** - 120-160 words
+1. **Overview** - 160-220 words
+2. **Historical Context** - 180-240 words
+3. **Key Facts** - 220-300 words with concrete dates and figures
+4. **Cultural Impact** - 160-220 words
+5. **Interesting Details** - 140-200 words
+6. **Modern Legacy** - 140-200 words
 7. **Related Topics** - Suggest 2-3 other connected historical subjects
 
 Please provide a comprehensive, well-structured, and engaging response suitable for learners visiting a world history museum.
@@ -262,6 +262,11 @@ def generate_fallback_response(question, relevant_context=None, wikipedia_info=N
                     response_parts.append(f"\n#### {title}\n{extract}")
 
             response_parts.append("\n### Comparative Notes\nWhen viewed together, these records show how the topic evolved across religious, political, social, and artistic contexts over time. This expanded fallback combines multiple historical references to provide fuller reading depth when direct AI generation is temporarily unavailable.")
+
+        response_parts.append("\n### Expanded Analysis\nThe topic can be read through several historical lenses: chronology, geography, power, belief, technology, and cultural memory. Chronologically, it should be placed inside the era when major political institutions, trade routes, or artistic traditions were reshaping societies. Geographically, its meaning depends on the region where it emerged and the places it later influenced. From a power perspective, the topic may reveal the role of rulers, elites, religious authorities, merchants, or local communities. In cultural terms, it can help explain how people expressed identity, preserved memory, and transmitted knowledge across generations.")
+        response_parts.append("\nIn practical terms, a strong historical explanation should connect the object, event, or figure to the larger transformation of its time. That includes the causes that preceded it, the conditions that made it possible, the immediate effects that followed, and the long-term legacy that remains visible today. Even when sources are limited, this framework produces a more complete and informative account than a single short paragraph.")
+        response_parts.append("\n### Broader Context\nMany historical topics do not stand alone. They connect to trade, migration, state formation, religion, warfare, art, science, and everyday life. Looking at neighboring topics often reveals why the subject mattered and how it was remembered later. When a topic appears in museum collections or historical databases, it usually reflects both its original function and the way later societies reinterpreted it.")
+        response_parts.append("\n### Synthesis\nTaken together, the main summary, the related topics, and the surrounding historical context are meant to give you a fuller reading experience. If you continue exploring the theme, focus on names, dates, places, materials, and political events, because those details usually unlock the strongest historical explanation.")
     
     if relevant_context:
         response_parts.append(f"\n## Additional Context\n{relevant_context}")

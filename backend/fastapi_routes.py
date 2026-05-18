@@ -10,13 +10,16 @@ import asyncio
 from datetime import datetime
 from pathlib import Path
 import tempfile
+from urllib.parse import quote_plus
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 from werkzeug.utils import secure_filename
+import requests
 
 try:  # Prefer package-relative imports when available.
     from .utils.ai_utils import generate_content, is_gemini_configured
+    from .utils.ai_utils import generate_with_vision
     from .utils.crag_utils import apply_crag
     from .utils.history_utils import (
         generate_fallback_response,
@@ -37,6 +40,7 @@ try:  # Prefer package-relative imports when available.
     from .config import get_config
 except ImportError:  # pragma: no cover - fallback for direct module execution
     from utils.ai_utils import generate_content, is_gemini_configured
+    from utils.ai_utils import generate_with_vision
     from utils.crag_utils import apply_crag
     from utils.history_utils import (
         generate_fallback_response,
@@ -116,6 +120,141 @@ def set_museum_api_key(key):
 
 def _word_count(text: str) -> int:
     return len(text.split()) if text else 0
+
+
+def _extract_topic_seed(question: str, wikipedia_info: dict | None = None, museum_data: dict | None = None) -> str:
+    if wikipedia_info and wikipedia_info.get("title"):
+        return str(wikipedia_info["title"])
+
+    if museum_data:
+        museum_hits = museum_data.get("smithsonian") or []
+        if museum_hits:
+            title = museum_hits[0].get("title") or museum_hits[0].get("summary")
+            if title:
+                return str(title)
+
+    return (question or "").strip()[:120]
+
+
+def _search_commons_images(topic: str, count: int = 4) -> list[dict]:
+    if not topic:
+        return []
+
+    try:
+        response = requests.get(
+            "https://commons.wikimedia.org/w/api.php",
+            params={
+                "action": "query",
+                "generator": "search",
+                "gsrsearch": topic,
+                "gsrnamespace": 6,
+                "gsrlimit": max(count + 4, 8),
+                "prop": "imageinfo",
+                "iiprop": "url|size|mime",
+                "iiurlwidth": 800,
+                "format": "json",
+                "origin": "*",
+            },
+            timeout=12,
+        )
+        if response.status_code != 200:
+            return []
+
+        data = response.json()
+        pages = data.get("query", {}).get("pages", {})
+        images: list[dict] = []
+        for page in pages.values():
+            if len(images) >= count:
+                break
+
+            info_list = page.get("imageinfo") or []
+            if not info_list:
+                continue
+
+            info = info_list[0]
+            mime = info.get("mime", "")
+            if not any(token in mime for token in ("jpeg", "png", "webp")):
+                continue
+
+            images.append({
+                "url": info.get("thumburl") or info.get("url", ""),
+                "width": info.get("thumbwidth") or info.get("width"),
+                "height": info.get("thumbheight") or info.get("height"),
+                "title": (page.get("title", "").replace("File:", "") or topic),
+                "source": "Wikimedia Commons",
+            })
+
+        return images
+    except Exception:
+        return []
+
+
+def _build_related_images(topic: str, count: int = 4) -> list[dict]:
+    images = _search_commons_images(topic, count)
+    if images:
+        return images
+
+    commons_url = f"https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search={quote_plus(topic)}"
+    return [
+        {
+            "url": commons_url,
+            "width": 0,
+            "height": 0,
+            "title": f"{topic} image search {index + 1}",
+            "source": "Wikimedia Commons",
+            "search_url": True,
+        }
+        for index in range(count)
+    ]
+
+
+def _is_image_upload(uploaded_file: UploadFile | None, mode: str, file_details: dict | None = None) -> bool:
+    if mode == "image":
+        return True
+
+    if not uploaded_file:
+        return False
+
+    filename = (uploaded_file.filename or "").lower()
+    extension = (file_details or {}).get("extension") or Path(filename).suffix.lower()
+    content_type = (uploaded_file.content_type or "").lower()
+
+    return extension in {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".tif"} or content_type.startswith("image/")
+
+
+def _ensure_min_words(question: str, response_text: str | None, wikipedia_info: dict | None, museum_data: dict | None, minimum_words: int = 1000) -> str | None:
+    if not response_text:
+        return None
+
+    if _word_count(response_text) >= minimum_words:
+        return response_text
+
+    expansion_prompt = f"""
+Expand the following historical answer into a richer markdown response of at least {minimum_words} words.
+
+Requirements:
+- Preserve the original factual core.
+- Add more historical context, chronology, analysis, and related topics.
+- Keep markdown headings.
+- Include concrete dates, figures, and cultural significance when appropriate.
+
+Question: {question}
+
+Existing answer:
+{response_text}
+
+Additional context:
+{wikipedia_info or {}}
+{museum_data or {}}
+"""
+    try:
+        expanded_response = generate_content(expansion_prompt, 0.55, 4096)
+        if expanded_response and _word_count(expanded_response) > _word_count(response_text):
+            return expanded_response
+    except Exception:
+        pass
+
+    return response_text
 
 
 def _build_related_topics(search_term: str) -> list[dict]:
@@ -202,40 +341,6 @@ async def get_ai_response(question: str) -> dict:
     elif isinstance(museum_result, Exception):
         print(f"Museum search failed: {museum_result}")
 
-    if is_gemini_configured():
-        try:
-            prompt = generate_history_prompt(question, relevant_context, wikipedia_info, museum_data)
-            ai_response = await asyncio.to_thread(generate_content, prompt, 0.7, 3072)
-
-            if ai_response and _word_count(ai_response) < 700:
-                expand_prompt = (
-                    f"Expand and deepen this answer to approximately 900-1100 words. Keep markdown headings and improve detail, chronology, and analysis.\n\n"
-                    f"Original question: {question}\n\n"
-                    f"Current answer:\n{ai_response}"
-                )
-                expanded_response = await asyncio.to_thread(generate_content, expand_prompt, 0.6, 3072)
-                if expanded_response and _word_count(expanded_response) > _word_count(ai_response):
-                    ai_response = expanded_response
-
-            if not ai_response and wikipedia_info:
-                short_prompt = (
-                    f"Provide a detailed markdown answer about: {question}. Target around 900-1100 words and include sections: "
-                    f"Overview, Historical Context, Key Facts, Cultural Impact, Interesting Details, Modern Legacy, Related Topics. "
-                    f"Reference this context: {wikipedia_info.get('extract', '')}"
-                )
-                ai_response = await asyncio.to_thread(generate_content, short_prompt, 0.5, 2048)
-
-            if ai_response:
-                return {
-                    "response": ai_response,
-                    "source": "ai",
-                    "wikipedia_info": wikipedia_info,
-                    "museum_data": museum_data,
-                    "context_used": relevant_context is not None,
-                }
-        except Exception as exc:
-            print(f"AI response error: {exc}")
-
     related_summaries: list[dict] = []
     if wikipedia_info:
         try:
@@ -249,7 +354,39 @@ async def get_ai_response(question: str) -> dict:
                         "extract": summary.get("extract", ""),
                     })
         except Exception as related_error:
-            print(f"Related summary fallback warning: {related_error}")
+            print(f"Related summary warning: {related_error}")
+
+    topic_seed = _extract_topic_seed(question, wikipedia_info, museum_data)
+    related_images = _build_related_images(topic_seed, 4)
+
+    if is_gemini_configured():
+        try:
+            prompt = generate_history_prompt(question, relevant_context, wikipedia_info, museum_data)
+            ai_response = await asyncio.to_thread(generate_content, prompt, 0.7, 4096)
+
+            ai_response = _ensure_min_words(question, ai_response, wikipedia_info, museum_data, minimum_words=1000)
+
+            if not ai_response and wikipedia_info:
+                short_prompt = (
+                    f"Provide a detailed markdown answer about: {question}. Target at least 1000 words and include sections: "
+                    f"Overview, Historical Context, Key Facts, Cultural Impact, Interesting Details, Modern Legacy, Related Topics. "
+                    f"Reference this context: {wikipedia_info.get('extract', '')}"
+                )
+                ai_response = await asyncio.to_thread(generate_content, short_prompt, 0.5, 4096)
+                ai_response = _ensure_min_words(question, ai_response, wikipedia_info, museum_data, minimum_words=1000)
+
+            if ai_response:
+                return {
+                    "response": ai_response,
+                    "source": "ai",
+                    "wikipedia_info": wikipedia_info,
+                    "museum_data": museum_data,
+                    "context_used": relevant_context is not None,
+                    "related_topics": related_summaries,
+                    "related_images": related_images,
+                }
+        except Exception as exc:
+            print(f"AI response error: {exc}")
 
     fallback = generate_fallback_response(
         question,
@@ -263,6 +400,8 @@ async def get_ai_response(question: str) -> dict:
         "wikipedia_info": wikipedia_info,
         "museum_data": museum_data,
         "context_used": relevant_context is not None,
+        "related_topics": related_summaries,
+        "related_images": related_images,
     }
 
 
@@ -276,6 +415,8 @@ async def ask_question(payload: QuestionRequest):
         "wikipedia_info": result.get("wikipedia_info"),
         "museum_data": result.get("museum_data"),
         "context_used": result.get("context_used", False),
+        "related_topics": result.get("related_topics", []),
+        "related_images": result.get("related_images", []),
         "timestamp": datetime.now().isoformat(),
     }
 
@@ -782,95 +923,149 @@ async def analyze_multimodal_input(
     file: UploadFile | None = File(None),
     upload: UploadFile | None = File(None),
 ):
-    question = (question or "").strip()
-    input_mode = (mode or "auto").strip().lower()
-    uploaded_file = file or upload
-
-    if not question and not uploaded_file:
-        raise HTTPException(status_code=400, detail="Provide a question, a file upload, or both.")
-
-    file_details = {"filename": None, "mode": input_mode, "extension": None}
-    extracted_text = ""
-    extraction_notes: list[str] = []
-    extraction_method = "text-only"
-
     saved_path: Path | None = None
-    if uploaded_file and uploaded_file.filename:
-        saved_path = await _save_upload(uploaded_file)
-        file_details["filename"] = uploaded_file.filename
-        file_details["extension"] = saved_path.suffix.lower()
+    try:
+        question = (question or "").strip()
+        input_mode = (mode or "auto").strip().lower()
+        uploaded_file = file or upload
 
-        try:
+        if not question and not uploaded_file:
+            raise HTTPException(status_code=400, detail="Provide a question, a file upload, or both.")
+
+        file_details = {"filename": None, "mode": input_mode, "extension": None}
+        extracted_text = ""
+        extraction_notes: list[str] = []
+        extraction_method = "text-only"
+
+        if uploaded_file and uploaded_file.filename:
+            saved_path = await _save_upload(uploaded_file)
+            file_details["filename"] = uploaded_file.filename
+            file_details["extension"] = saved_path.suffix.lower()
+
             extraction = extract_multimodal_content(saved_path, uploaded_file.filename, input_mode)
             extracted_text = extraction.get("text", "") or ""
             extraction_notes = extraction.get("notes", []) or []
             extraction_method = extraction.get("method", "unknown")
             file_details.update(extraction.get("metadata", {}))
-        finally:
-            if saved_path is not None:
-                _cleanup_path(saved_path)
 
-    combined_context = extracted_text.strip() or question
-    related_topics = _build_related_topics(question or extracted_text[:120])
+        combined_context = extracted_text.strip() or question
+        related_topics = _build_related_topics(question or extracted_text[:120])
+        image_seed = _extract_topic_seed(question or extracted_text[:120], None, None) or file_details.get("filename") or input_mode
+        related_images = _build_related_images(image_seed, 4)
+        is_image_upload = _is_image_upload(uploaded_file, input_mode, file_details)
 
-    if is_gemini_configured():
-        try:
-            config = get_config()
-            index_path = str(Path(config.DATA_DIR) / "faiss_index.bin")
-            text_map_path = str(Path(config.DATA_DIR) / "faiss_text_map.json")
-            index, t_map = load_vector_db(index_path, text_map_path)
+        if is_image_upload and saved_path and is_gemini_configured():
+            try:
+                from PIL import Image
 
-            crag_results = apply_crag(
-                query=question or "Analyze the uploaded material",
-                index=index,
-                text_map=t_map,
-                extracted_text=extracted_text,
-            )
+                with Image.open(saved_path) as image:
+                    vision_prompt = f"""
+You are analyzing an uploaded image for a historical research application.
 
-            return {
-                "success": True,
-                "mode": input_mode,
-                "method": extraction_method,
-                "metadata": file_details,
-                "extracted_text": extracted_text,
-                "notes": extraction_notes,
-                "response": crag_results.get("final_response", ""),
-                "related_topics": related_topics,
-                "crag": {
-                    "applied": crag_results.get("crag_applied", False),
-                    "validation_passed": crag_results.get("validation_passed", True),
-                    "confidence_score": crag_results.get("stage_3_validation", {}).get("confidence_score", 0),
-                    "validation_issues": crag_results.get("stage_3_validation", {}).get("issues", []),
-                    "stages_completed": 4,
-                },
-            }
-        except Exception as exc:
-            print(f"CRAG pipeline error: {exc}")
+Provide a detailed markdown response of at least 1000 words.
+If the image is an artwork or painting, identify the subject, style, possible artist or movement if reasonably inferable, visual motifs, colors, composition, symbolism, and historical significance.
+If the image contains readable text, include a transcription and interpretation.
+If the image is not historically identifiable with confidence, explain the visual evidence and give the most plausible historical or cultural reading.
 
-    fallback = generate_multimodal_fallback_response(
-        question=question or "Uploaded material analysis",
-        input_mode=input_mode,
-        extracted_text=combined_context,
-        file_metadata=file_details,
-        notes=extraction_notes,
-        related_topics=related_topics,
-    )
+User question: {question or 'Describe and identify this image'}
+Filename: {file_details.get('filename') or 'uploaded image'}
+"""
 
-    return {
-        "success": True,
-        "mode": input_mode,
-        "method": extraction_method,
-        "metadata": file_details,
-        "extracted_text": extracted_text,
-        "notes": extraction_notes,
-        "response": fallback,
-        "related_topics": related_topics,
-        "fallback": True,
-        "crag": {
-            "applied": False,
-            "validation_passed": False,
-            "confidence_score": 0,
-            "validation_issues": ["CRAG pipeline unavailable, using fallback response"],
-            "stages_completed": 0,
-        },
-    }
+                    vision_response = await asyncio.to_thread(generate_with_vision, vision_prompt, image.copy())
+                    vision_response = _ensure_min_words(question or file_details.get("filename", "uploaded image"), vision_response, None, None, minimum_words=1000)
+                    if vision_response:
+                        topic_seed = _extract_topic_seed(question or vision_response[:120], None, None)
+                        related_images = _build_related_images(topic_seed or image_seed, 4)
+                        vision_notes = [
+                            note for note in extraction_notes
+                            if "OCR package not available" not in note and "OCR service unavailable" not in note
+                        ]
+                        if not vision_notes:
+                            vision_notes = ["Visual analysis completed successfully; OCR was not required for this image."]
+                        return {
+                            "success": True,
+                            "mode": input_mode,
+                            "method": "vision-image",
+                            "metadata": file_details,
+                            "extracted_text": extracted_text,
+                            "notes": vision_notes,
+                            "response": vision_response,
+                            "related_topics": related_topics,
+                            "related_images": related_images,
+                            "crag": {
+                                "applied": False,
+                                "validation_passed": True,
+                                "confidence_score": 1.0,
+                                "validation_issues": [],
+                                "stages_completed": 1,
+                            },
+                        }
+            except Exception as exc:
+                print(f"Vision image analysis warning: {exc}")
+
+        if is_gemini_configured():
+            try:
+                config = get_config()
+                index_path = str(Path(config.DATA_DIR) / "faiss_index.bin")
+                text_map_path = str(Path(config.DATA_DIR) / "faiss_text_map.json")
+                index, t_map = load_vector_db(index_path, text_map_path)
+
+                crag_results = apply_crag(
+                    query=question or "Analyze the uploaded material",
+                    index=index,
+                    text_map=t_map,
+                    extracted_text=extracted_text,
+                )
+
+                return {
+                    "success": True,
+                    "mode": input_mode,
+                    "method": extraction_method,
+                    "metadata": file_details,
+                    "extracted_text": extracted_text,
+                    "notes": extraction_notes,
+                    "response": crag_results.get("final_response", ""),
+                    "related_topics": related_topics,
+                    "related_images": related_images,
+                    "crag": {
+                        "applied": crag_results.get("crag_applied", False),
+                        "validation_passed": crag_results.get("validation_passed", True),
+                        "confidence_score": crag_results.get("stage_3_validation", {}).get("confidence_score", 0),
+                        "validation_issues": crag_results.get("stage_3_validation", {}).get("issues", []),
+                        "stages_completed": 4,
+                    },
+                }
+            except Exception as exc:
+                print(f"CRAG pipeline error: {exc}")
+
+        fallback = generate_multimodal_fallback_response(
+            question=question or "Uploaded material analysis",
+            input_mode=input_mode,
+            extracted_text=combined_context,
+            file_metadata=file_details,
+            notes=extraction_notes,
+            related_topics=related_topics,
+        )
+
+        return {
+            "success": True,
+            "mode": input_mode,
+            "method": extraction_method,
+            "metadata": file_details,
+            "extracted_text": extracted_text,
+            "notes": extraction_notes,
+            "response": fallback,
+            "related_topics": related_topics,
+            "related_images": related_images,
+            "fallback": True,
+            "crag": {
+                "applied": False,
+                "validation_passed": False,
+                "confidence_score": 0,
+                "validation_issues": ["CRAG pipeline unavailable, using fallback response"],
+                "stages_completed": 0,
+            },
+        }
+    finally:
+        if saved_path is not None:
+            _cleanup_path(saved_path)

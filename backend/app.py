@@ -62,8 +62,12 @@ def create_app() -> FastAPI:
     Path(config.DATA_DIR).mkdir(parents=True, exist_ok=True)
     Path(config.GENERATED_IMAGES_DIR).mkdir(parents=True, exist_ok=True)
 
-    @app.on_event("startup")
-    async def startup_event() -> None:
+    from contextlib import asynccontextmanager
+
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        # Startup logic (replaces deprecated @app.on_event("startup"))
         print("\n" + "=" * 60)
         print("PASTPORTALS - Backend Server")
         print("=" * 60)
@@ -118,6 +122,10 @@ def create_app() -> FastAPI:
         print(f"Environment: {config.ENV}")
         print(f"CORS Origins: {', '.join(config.CORS_ORIGINS)}")
         print("=" * 60 + "\n")
+
+        yield
+
+    app.router.lifespan_context = lifespan
 
     @app.get("/")
     async def index() -> dict:
