@@ -344,16 +344,18 @@ Navigate to `http://localhost:3001/multimodal` to access the multimodal input in
 ### 👾 Backend Testing
 
 ```powershell
-# Execute all backend tests
-pytest backend/tests/ -v
+# Activate the project virtualenv first, then execute all backend tests
+./.venv/bin/python -m pytest -q backend
 
 # Generate coverage report
-pytest backend/tests/ --cov=backend.utils --cov=backend.routes --cov-report=html
+./.venv/bin/python -m pytest -q backend --cov=backend.utils --cov=backend.routes --cov-report=html
 
 # Test specific modules
-pytest backend/tests/test_multimodal_utils.py -v
-pytest backend/tests/test_multimodal_routes.py -v
+./.venv/bin/python -m pytest -q backend/tests/test_multimodal_utils.py
+./.venv/bin/python -m pytest -q backend/tests/test_multimodal_routes.py
 ```
+
+If you already have the virtualenv activated, `pytest -q backend` also works from the repository root.
 
 **Test Coverage**: 
 - `test_multimodal_utils.py`: 35+ tests (content extraction, OCR validation, response generation)
