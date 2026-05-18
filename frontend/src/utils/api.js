@@ -1,9 +1,12 @@
 import axios from 'axios';
 
+const DEFAULT_TIMEOUT = 120000;
+const SEARCH_TIMEOUT = 300000;
+
 // Create axios instance with base configuration
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
-  timeout: 30000, // 30 seconds timeout
+  timeout: DEFAULT_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -83,6 +86,8 @@ export const apiService = {
     try {
       const response = await api.post('/api/ask', {
         question: question
+      }, {
+        timeout: SEARCH_TIMEOUT,
       });
       return response.data;
     } catch (error) {
@@ -94,6 +99,7 @@ export const apiService = {
   analyzeMultimodal: async (formData) => {
     try {
       const response = await api.post('/api/multimodal/analyze', formData, {
+        timeout: SEARCH_TIMEOUT,
         headers: {
           'Content-Type': 'multipart/form-data'
         }

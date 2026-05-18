@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import {
   AlertCircle,
@@ -7,7 +8,7 @@ import {
   Image as ImageIcon,
   Loader2,
   Mic,
-  Play,
+  Search,
   Sparkles,
   Square,
   Trash2,
@@ -15,8 +16,8 @@ import {
   Video,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import VoiceSearchBar from './VoiceSearchBar';
 import { apiService } from '../utils/api';
+import { getTopicImages } from '../utils/imageSearch';
 
 const MODE_OPTIONS = [
   {
@@ -38,10 +39,10 @@ const MODE_OPTIONS = [
     hint: 'Uploaded clips or a short camera recording',
   },
   {
-    id: 'voice',
-    label: 'Voice',
+    id: 'prompt',
+    label: 'Text + Voice',
     icon: Mic,
-    hint: 'Speak a question and analyze without a file',
+    hint: 'Use one prompt box for typed or voice-style queries',
   },
 ];
 
@@ -86,6 +87,7 @@ function validateFile(file, mode) {
 }
 
 const MultimodalPanel = () => {
+  const location = useLocation();
   const [activeMode, setActiveMode] = useState('document');
   const [question, setQuestion] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
@@ -96,13 +98,87 @@ const MultimodalPanel = () => {
   const [extractedText, setExtractedText] = useState('');
   const [analysisNotes, setAnalysisNotes] = useState([]);
   const [metadata, setMetadata] = useState(null);
+  const [resultImages, setResultImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [fileValidationErrors, setFileValidationErrors] = useState([]);
+  const [isListening, setIsListening] = useState(false);
   const mediaRecorderRef = useRef(null);
   const mediaStreamRef = useRef(null);
   const recordingChunksRef = useRef([]);
+  const speechRecognitionRef = useRef(null);
+  const lastResultIndexRef = useRef(-1);
+  const lastAutoSearchQueryRef = useRef('');
+  const handleAnalyzeRef = useRef(null);
+
+  const normalizeQuery = (value) => {
+    if (typeof value === 'string') {
+      return value.replace(/\s+/g, ' ').trim();
+    }
+
+    if (typeof value === 'number') {
+      return String(value);
+    }
+
+    return '';
+  };
+
+  const buildVisualQuery = (response, fallbackMode) => {
+    const candidates = [
+      normalizeQuery(question),
+      normalizeQuery(response?.response),
+      normalizeQuery(response?.extracted_text),
+      normalizeQuery(metadata?.filename),
+      normalizeQuery(selectedFile?.name),
+      normalizeQuery(response?.related_topics?.[0]?.title),
+      fallbackMode,
+    ];
+
+    const query = candidates.find((candidate) => candidate && candidate.length >= 3) || '';
+    return query.length > 120 ? query.slice(0, 120) : query;
+  };
+
+  // Initialize Speech Recognition on mount
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition && !speechRecognitionRef.current) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        lastResultIndexRef.current = -1;
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = Math.max(0, lastResultIndexRef.current + 1); i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            transcript += event.results[i][0].transcript;
+            lastResultIndexRef.current = i;
+          }
+        }
+        if (transcript.trim()) {
+          setQuestion((prev) => prev + (prev.trim() ? ' ' : '') + transcript.trim());
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setErrorMessage(`Voice input error: ${event.error}`);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      speechRecognitionRef.current = recognition;
+    }
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -126,26 +202,47 @@ const MultimodalPanel = () => {
       mediaStreamRef.current = null;
     }
 
+    if (isListening && speechRecognitionRef.current) {
+      speechRecognitionRef.current.stop();
+    }
+
     mediaRecorderRef.current = null;
     recordingChunksRef.current = [];
     setSelectedFile(null);
     setPreviewUrl('');
     setIsRecording(false);
+    setIsListening(false);
     setRecordingStatus('');
     setResult(null);
     setExtractedText('');
     setAnalysisNotes([]);
     setMetadata(null);
+    setResultImages([]);
     setErrorMessage('');
     setUploadProgress(0);
     setFileValidationErrors([]);
+  };
+
+  const handleVoiceInput = () => {
+    if (!speechRecognitionRef.current) {
+      setErrorMessage('Speech recognition is not supported in your browser.');
+      return;
+    }
+
+    if (isListening) {
+      speechRecognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      setErrorMessage('');
+      speechRecognitionRef.current.start();
+    }
   };
 
   const handleModeChange = (mode) => {
     clearSelection();
     setActiveMode(mode);
     setErrorMessage('');
-    if (mode === 'voice') {
+    if (mode === 'prompt') {
       setRecordingStatus('');
     }
   };
@@ -178,6 +275,7 @@ const MultimodalPanel = () => {
     setExtractedText('');
     setAnalysisNotes([]);
     setMetadata(null);
+    setResultImages([]);
 
     if (activeMode === 'video' && file.type.startsWith('video/')) {
       setRecordingStatus('Video file ready for analysis.');
@@ -254,19 +352,28 @@ const MultimodalPanel = () => {
     }
   };
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (questionOverride = null, modeOverride = null) => {
+    const effectiveMode = modeOverride || activeMode;
+    const effectiveQuestion = normalizeQuery(questionOverride ?? question);
+
     setLoading(true);
     setErrorMessage('');
     setUploadProgress(0);
+    setResultImages([]);
 
     try {
-      if ((activeMode !== 'voice') && !selectedFile) {
-        throw new Error('Upload a file or switch to voice mode before analyzing.');
+      if (effectiveMode === 'prompt' && !effectiveQuestion) {
+        throw new Error('Enter a query in Text + Voice mode before searching.');
+      }
+
+      if ((effectiveMode !== 'prompt') && !selectedFile) {
+        throw new Error('Upload a file or switch to Text + Voice mode before analyzing.');
       }
 
       const formData = new FormData();
-      formData.append('question', question.trim());
-      formData.append('mode', activeMode);
+      formData.append('question', effectiveQuestion);
+      // Backend expects known mode values; use voice for prompt-only searches.
+      formData.append('mode', effectiveMode === 'prompt' ? 'voice' : effectiveMode);
       if (selectedFile) {
         formData.append('file', selectedFile);
       }
@@ -280,6 +387,9 @@ const MultimodalPanel = () => {
       }, 200);
 
       const response = await apiService.analyzeMultimodal(formData);
+
+      const visualQuery = buildVisualQuery(response, effectiveMode);
+      const images = visualQuery ? await getTopicImages(visualQuery, 4).catch(() => []) : [];
       
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -288,6 +398,7 @@ const MultimodalPanel = () => {
       setExtractedText(response.extracted_text || '');
       setAnalysisNotes(response.notes || []);
       setMetadata(response.metadata || null);
+      setResultImages(Array.isArray(response.related_images) && response.related_images.length > 0 ? response.related_images : (Array.isArray(images) ? images : []));
       toast.success(response.fallback ? 'Analysis completed with fallback context.' : 'Multimodal analysis ready.');
     } catch (err) {
       const message = err.message || 'Analysis failed';
@@ -299,24 +410,85 @@ const MultimodalPanel = () => {
     }
   };
 
+  handleAnalyzeRef.current = handleAnalyze;
+
+  useEffect(() => {
+    const incomingQuery = normalizeQuery(location.state?.query);
+    if (!incomingQuery) {
+      return;
+    }
+
+    setActiveMode('prompt');
+    setQuestion(incomingQuery);
+
+    if (location.state?.autoSearch && lastAutoSearchQueryRef.current !== incomingQuery) {
+      lastAutoSearchQueryRef.current = incomingQuery;
+      handleAnalyzeRef.current?.(incomingQuery, 'prompt');
+    }
+  }, [location.state]);
+
+  const renderSourcePreview = () => {
+    if (!previewUrl || !selectedFile) {
+      return null;
+    }
+
+    return (
+      <div className="multimodal-source-preview">
+        <div className="multimodal-source-preview-header">
+          <strong>Source preview</strong>
+          <span>{selectedFile.name}</span>
+        </div>
+        {activeMode === 'video' ? (
+          <video src={previewUrl} controls className="multimodal-video-preview" />
+        ) : (
+          <img src={previewUrl} alt="Uploaded preview" className="multimodal-image-preview" />
+        )}
+      </div>
+    );
+  };
+
   const renderModePanel = () => {
-    if (activeMode === 'voice') {
+    if (activeMode === 'prompt') {
       return (
         <div className="multimodal-card multimodal-voice-card">
           <div className="multimodal-card-header">
             <Mic size={18} />
-            <h3>Voice prompt</h3>
+            <h3>Text and voice prompt</h3>
           </div>
-          <VoiceSearchBar
-            value={question}
-            onChange={(event) => setQuestion(event.target.value)}
-            onSubmit={(event) => {
-              event.preventDefault();
-              handleAnalyze();
-            }}
-            placeholder="Speak a question or type it here"
-          />
-          <p className="multimodal-help">This mode sends only your spoken or typed question to the backend. You can still attach a file by switching to another mode.</p>
+          <div className="multimodal-prompt-row">
+            <input
+              className="multimodal-prompt-input"
+              aria-label="Text and voice query"
+              placeholder="Type your question here"
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  handleAnalyze();
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleVoiceInput}
+              title={isListening ? 'Stop listening' : 'Start voice input'}
+              className={`multimodal-voice-btn ${isListening ? 'listening' : ''}`}
+              aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
+            >
+              <Mic size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={handleAnalyze}
+              title="Search"
+              className="multimodal-search-btn"
+              disabled={loading}
+            >
+              {loading ? <Loader2 size={15} className="spin" /> : <Search size={16} />}
+            </button>
+          </div>
+          <p className="multimodal-help">Click the microphone icon to speak your query, or type directly into the input field, then click search.</p>
         </div>
       );
     }
@@ -454,22 +626,9 @@ const MultimodalPanel = () => {
           </div>
           <p className="multimodal-help">{MODE_OPTIONS.find((option) => option.id === activeMode)?.hint}</p>
 
-          <div className="multimodal-question-field">
-            <label htmlFor="multimodal-question">Research question</label>
-            <textarea
-              id="multimodal-question"
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              placeholder="Ask what this document, image, or video is about, or add context for the analysis"
-              rows={4}
-            />
-          </div>
+          {/* Research question textarea removed per UI request. Use the prompt on the right to enter queries. */}
 
           <div className="multimodal-actions">
-            <button type="button" className="multimodal-action-btn primary" onClick={handleAnalyze} disabled={loading}>
-              {loading ? <Loader2 size={16} className="spin" /> : <Play size={16} />}
-              <span>{loading ? 'Analyzing...' : 'Analyze input'}</span>
-            </button>
             <button type="button" className="multimodal-action-btn secondary" onClick={clearSelection}>
               <Trash2 size={16} />
               <span>Clear</span>
@@ -487,12 +646,33 @@ const MultimodalPanel = () => {
         </section>
 
         <section className="multimodal-card multimodal-input-card">
+          {activeMode !== 'prompt' && (
+            <div className="multimodal-prompt-row">
+              <input
+                className="multimodal-prompt-input"
+                aria-label="Search prompt"
+                placeholder="Optional context: Enter a query or question"
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    handleAnalyze();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleAnalyze}
+                title="Search"
+                className="multimodal-search-btn"
+                disabled={loading}
+              >
+                {loading ? <Loader2 size={15} className="spin" /> : <Search size={16} />}
+              </button>
+            </div>
+          )}
           {renderModePanel()}
-          <div className="multimodal-card-footer">
-            <span className="multimodal-footnote">
-              OCR, PDF text extraction, DOCX parsing, and frame sampling are handled on the backend.
-            </span>
-          </div>
         </section>
       </div>
 
@@ -506,6 +686,8 @@ const MultimodalPanel = () => {
             {metadata?.filename && <span className="multimodal-file-chip">{metadata.filename}</span>}
           </div>
 
+          {renderSourcePreview()}
+
           {metadata && (
             <div className="multimodal-metadata-grid">
               <div><strong>Mode</strong><span>{metadata.mode || activeMode}</span></div>
@@ -513,6 +695,26 @@ const MultimodalPanel = () => {
               <div><strong>Method</strong><span>{result?.method || 'analysis'}</span></div>
               {metadata.duration_seconds != null && <div><strong>Duration</strong><span>{metadata.duration_seconds}s</span></div>}
               {metadata.sampled_frames != null && <div><strong>Sampled frames</strong><span>{metadata.sampled_frames}</span></div>}
+            </div>
+          )}
+
+          {resultImages.length > 0 && (
+            <div className="multimodal-visual-gallery">
+              <div className="multimodal-section-title-row">
+                <h3>Visual references</h3>
+                <span>Related images for context</span>
+              </div>
+              <div className="multimodal-visual-grid">
+                {resultImages.map((image, index) => (
+                  <figure key={`${image.title}-${index}`} className="multimodal-visual-card">
+                    <img src={image.url} alt={image.title} loading="lazy" />
+                    <figcaption>
+                      <strong>{image.title}</strong>
+                      <span>{image.source}</span>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
             </div>
           )}
 
@@ -538,6 +740,23 @@ const MultimodalPanel = () => {
             <article className="multimodal-response">
               <ReactMarkdown>{result.response}</ReactMarkdown>
             </article>
+          )}
+
+          {Array.isArray(result?.related_topics) && result.related_topics.length > 0 && (
+            <div className="multimodal-related-topics">
+              <div className="multimodal-section-title-row">
+                <h3>Related topics</h3>
+                <span>Use these for deeper follow-up searches</span>
+              </div>
+              <div className="multimodal-related-grid">
+                {result.related_topics.slice(0, 4).map((topic, index) => (
+                  <article key={`${topic.title}-${index}`} className="multimodal-related-card">
+                    <h4>{topic.title || 'Related topic'}</h4>
+                    <p>{topic.extract || 'No additional description was returned.'}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
           )}
         </section>
       )}
