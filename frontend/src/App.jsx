@@ -5,7 +5,8 @@ import Sidebar from './components/Sidebar';
 import SettingsModal from './components/SettingsModal';
 import ExplorePage from './components/ExplorePage';
 import MultimodalPanel from './components/MultimodalPanel';
-import SearchPageNew from './components/SearchPageNew';
+// Search is handled by the MultimodalPanel (now renamed in the UI)
+import HistoryExplorer from './components/HistoryExplorer';
 import TimelinePageNew from './components/TimelinePageNew';
 import MuseumsPageNew from './components/MuseumsPageNew';
 import { APIProvider } from './contexts/APIContext';
@@ -25,8 +26,8 @@ function App() {
             <main className="main-content">
               <Routes>
                 <Route path="/" element={<ExplorePage />} />
-                <Route path="/search" element={<SearchPageNew />} />
-                <Route path="/multimodal" element={<MultimodalPanel />} />
+                <Route path="/history" element={<HistoryExplorer />} />
+                <Route path="/search" element={<MultimodalPanel />} />
                 <Route path="/timeline" element={<TimelinePageNew />} />
                 <Route path="/museums" element={<MuseumsPageNew />} />
               </Routes>

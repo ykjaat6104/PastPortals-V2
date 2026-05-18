@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { Clock, ChevronRight, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import VoiceSearchBar from './VoiceSearchBar';
-import { useAPI } from '../contexts/APIContext';
+import { navigateToSearch } from '../utils/searchNavigation';
 
 const TimelinePageNew = () => {
-  const { askQuestion } = useAPI();
+  const navigate = useNavigate();
   const [selectedTimeline, setSelectedTimeline] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResult, setSearchResult] = useState('');
-  const [searching, setSearching] = useState(false);
   const [showMore, setShowMore] = useState(false);
 
   const timelines = [
@@ -97,20 +95,11 @@ const TimelinePageNew = () => {
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
-    if (searchQuery.trim()) {
-      setSearching(true);
-      setSearchResult('');
-      try {
-        const prompt = `Provide a detailed timeline and historical information about ${searchQuery}. Include key dates, events, and significance in world history. Use Wikipedia and historical sources.`;
-        const response = await askQuestion(prompt);
-        setSearchResult(response?.answer || response?.response || response);
-      } catch (error) {
-        console.error('Timeline search error:', error);
-        setSearchResult('Sorry, could not find timeline information. Please check your connection and try again.');
-      } finally {
-        setSearching(false);
-      }
-    }
+    navigateToSearch(navigate, `${searchQuery} timeline`, '/timeline');
+  };
+
+  const handleEventSearch = (eventName) => {
+    navigateToSearch(navigate, `${eventName} timeline`, '/timeline');
   };
 
   return (
@@ -134,25 +123,6 @@ const TimelinePageNew = () => {
           className="timeline-search-bar"
         />
       </div>
-
-      {searching && (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>⏳ Searching through time...</p>
-          <small>Powered by Google Gemini</small>
-        </div>
-      )}
-
-      {searchResult && !searching && (
-        <div className="timeline-search-result">
-          <div className="result-header">
-            <h2>Timeline Information</h2>
-          </div>
-          <div className="result-content">
-            <ReactMarkdown>{searchResult}</ReactMarkdown>
-          </div>
-        </div>
-      )}
 
       <div className="timelines-grid">
         {visibleTimelines.map((timeline) => (
@@ -190,7 +160,13 @@ const TimelinePageNew = () => {
                         <Calendar size={16} />
                         {period.year}
                       </div>
-                      <h4 className="event-title">{period.event}</h4>
+                      <button
+                        type="button"
+                        className="event-title"
+                        onClick={() => handleEventSearch(period.event)}
+                      >
+                        {period.event}
+                      </button>
                       <p className="event-description">{period.description}</p>
                     </div>
                   </div>

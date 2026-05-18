@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles, Globe, Landmark, BookOpen, Scroll, Crown, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import VoiceSearchBar from './VoiceSearchBar';
+import { navigateToSearch } from '../utils/searchNavigation';
 
 const ExplorePage = () => {
   const navigate = useNavigate();
@@ -60,14 +61,12 @@ const ExplorePage = () => {
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate('/search', { state: { query: searchQuery, autoSearch: true } });
-    }
+    navigateToSearch(navigate, searchQuery, '/');
   };
 
   const handleTopicClick = (topic) => {
     console.log('Tag clicked:', topic);
-    navigate('/search', { state: { query: topic, autoSearch: true } });
+    navigateToSearch(navigate, topic, '/');
   };
 
   return (

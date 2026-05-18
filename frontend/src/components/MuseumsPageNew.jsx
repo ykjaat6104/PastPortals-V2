@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { Building2, MapPin, Globe, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import VoiceSearchBar from './VoiceSearchBar';
-import { useAPI } from '../contexts/APIContext';
+import { navigateToSearch } from '../utils/searchNavigation';
 
 const MuseumsPageNew = () => {
-  const { askQuestion } = useAPI();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMuseum, setSelectedMuseum] = useState(null);
-  const [searchResult, setSearchResult] = useState('');
-  const [searching, setSearching] = useState(false);
 
   const featuredMuseums = [
     {
@@ -82,20 +80,11 @@ const MuseumsPageNew = () => {
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
-    if (searchQuery.trim()) {
-      setSearching(true);
-      setSearchResult('');
-      try {
-        const prompt = `Provide detailed information about ${searchQuery} museum including its history, notable collections, visiting hours, and significance. Use Wikipedia and historical sources.`;
-        const response = await askQuestion(prompt);
-        setSearchResult(response?.answer || response?.response || response);
-      } catch (error) {
-        console.error('Museum search error:', error);
-        setSearchResult('Sorry, could not find information about this museum. Please check your connection and try again.');
-      } finally {
-        setSearching(false);
-      }
-    }
+    navigateToSearch(navigate, `${searchQuery} museum`, '/museums');
+  };
+
+  const handleMuseumSearch = (museumName) => {
+    navigateToSearch(navigate, `${museumName} museum`, '/museums');
   };
 
   return (
@@ -120,25 +109,6 @@ const MuseumsPageNew = () => {
         />
       </div>
 
-      {searching && (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Searching museum database...</p>
-          <small>Powered by Google Gemini</small>
-        </div>
-      )}
-
-      {searchResult && !searching && (
-        <div className="museum-search-result">
-          <div className="result-header">
-            <h2>Search Results</h2>
-          </div>
-          <div className="result-content">
-            <ReactMarkdown>{searchResult}</ReactMarkdown>
-          </div>
-        </div>
-      )}
-
       <div className="museums-grid">
         {featuredMuseums.map((museum) => (
           <div
@@ -159,6 +129,17 @@ const MuseumsPageNew = () => {
               <p className="museum-established">Established {museum.established}</p>
               <p className="museum-description">{museum.description}</p>
 
+              <button
+                className="visit-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMuseumSearch(museum.name);
+                }}
+              >
+                <Globe size={16} />
+                Search This Museum
+              </button>
+
               {selectedMuseum === museum.id && (
                 <div className="museum-details">
                   <h4 className="highlights-title">Must-See Highlights</h4>
@@ -166,7 +147,16 @@ const MuseumsPageNew = () => {
                     {museum.highlights.map((highlight, idx) => (
                       <li key={idx} className="highlight-item">
                         <span className="highlight-dot"></span>
-                        {highlight}
+                        <button
+                          type="button"
+                          className="highlight-link-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigateToSearch(navigate, `${highlight} ${museum.name}`, '/museums');
+                          }}
+                        >
+                          {highlight}
+                        </button>
                       </li>
                     ))}
                   </ul>
